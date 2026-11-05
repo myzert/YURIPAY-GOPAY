@@ -1,4 +1,4 @@
-# ⚡ YURIPAY by myzert
+# YURIPAY
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/myzert/yuripay/main/public/images/thank-you.webp" alt="YuriPay Banner" width="160" style="border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);" />
@@ -26,18 +26,16 @@
 > 3. **Tanpa Jaminan (No Warranty)**: Perangkat lunak ini disediakan di bawah lisensi terbuka [ISC License](LICENSE) "sebagaimana adanya" (*as-is*) tanpa jaminan dalam bentuk apa pun, dan penulis dibebaskan dari segala bentuk tuntutan ganti rugi atau liabilitas operasional.
 
 ## 📑 Daftar Isi
-1. [Alur Pembayaran dan Validasi](#-alur-pembayaran-dan-validasi)
-2. [⚠️ MENGAPA YURIPAY TIDAK BISA DI-DEPLOY DI VERCEL / SERVERLESS?](#-mengapa-yuripay-tidak-bisa-di-deploy-di-vercel--serverless)
-3. [Fitur Utama Enterprise](#-fitur-utama-enterprise)
-4. [Arsitektur Keamanan Dual-Port](#-arsitektur-keamanan-dual-port)
-5. [Otentikasi Akun GoBiz Merchant](#-otentikasi-akun-gobiz-merchant)
-6. [Panduan Deployment Produksi (VPS, cPanel, Docker, Termux)](#-panduan-deployment-produksi)
-7. [Kustomisasi Logo & Identitas Merchant](#-kustomisasi-logo--identitas-merchant)
-8. [Konfigurasi Environment (.env)](#-konfigurasi-environment-env)
-9. [Spesifikasi API & Integrasi Midtrans](#-spesifikasi-api--integrasi-midtrans)
-10. [Dokumentasi Swagger UI](#-dokumentasi-swagger-ui)
-11. [Pertanyaan Umum (FAQ)](#-pertanyaan-umum-faq)
-12. [Lisensi & Kontribusi](#-lisensi--kontribusi)
+1. [Alur Pembayaran dan Validasi](#alur-pembayaran-dan-validasi)
+2. [Persiapan](#persiapan)
+3. [Deployment](#deployment)
+4. [Fitur Utama Enterprise](#fitur-utama-enterprise)
+5. [Arsitektur Keamanan Dual-Port](#arsitektur-keamanan-dual-port)
+6. [Konfigurasi Environment (.env)](#konfigurasi-environment-env)
+7. [Spesifikasi API & Integrasi Midtrans](#-spesifikasi-api--integrasi-midtrans)
+8. [Dokumentasi Swagger UI](#-dokumentasi-swagger-ui)
+9. [Pertanyaan Umum (FAQ)](#-pertanyaan-umum-faq)
+10. [Lisensi & Hak Cipta](#-lisensi--hak-cipta)
 
 ## Alur Pembayaran dan Validasi
 
@@ -45,27 +43,144 @@
 
 <img src="assets/flow.png" alt="YuriPay Flow Diagram" width="100%" style="border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); max-height: 300px;" />
 
-## ⚠️ MENGAPA YURIPAY TIDAK BISA DI-DEPLOY DI VERCEL / SERVERLESS?
+## Persiapan
 
-> [!CAUTION]
-> **YuriPay dirancang secara fundamental sebagai DAEMON STATEFUL. YuriPay TIDAK DAPAT BERJALAN di Vercel, Netlify, Cloudflare Workers, AWS Lambda, atau platform Serverless sejenis.**
+Sebelum memulai penggunaan **YURIPAY**, pastikan Anda telah memenuhi persyaratan berikut:
 
-Secara arsitektur perangkat lunak, sistem gateway membutuhkan empat pilar runtime yang tidak dimiliki lingkungan serverless:
+1. Memiliki akun merchant **Gopay/GoBiz/GoFood** yang aktif dan terverifikasi.
+2. Memiliki VPS/cPanel/Web Hosting yang dapat menjalankan operasi statefull secara terus-menerus.
+3. [Node.js LTS](https://nodejs.org/en/download/) versi 22.x terpasang di server.
 
-| Kebutuhan Sistem YuriPay | ❌ Platform Serverless (Vercel / Lambda) | ✔️ Lingkungan Stateful (VPS / cPanel / Docker) |
-| :--- | :--- | :--- |
-| **Realtime Daemon Poller** | **Container dibekukan (*frozen*)** seketika setelah respons HTTP selesai dikirim. Event loop berhenti total dan mutasi tidak akan pernah terverifikasi. | **Node.js Process berjalan 24/7**, memverifikasi mutasi GoPay setiap 2.5 detik secara non-blocking. |
-| **Penyimpanan SQLite WAL** | Filesystem bersifat **read-only dan sementara (*ephemeral*)**. Database terhapus otomatis saat instance mati (*scale-to-zero*). | Database SQLite tersimpan permanen pada disk POSIX dengan konkurensi tinggi (**Write-Ahead Logging**). |
-| **Arsitektur Dual-Port** | Hanya mendukung single-port HTTP router standar. | Membuka dua socket port terisolasi secara simultan (**Port 3000** Internal & **Port 3001** Publik). |
-| **In-Memory Mutex Lock** | Instance serverless di-spawn secara acak (multi-instans tanpa sinkronisasi memori), menyebabkan tabrakan kode unik. | Menjaga memori sesi aktif terpusat, menjamin offset +1 perak tidak bertabrakan antar pelanggan. |
+## Deployment
 
-**Platform Deployment yang Didukung Penuh:**
-- **Linux VPS**: Ubuntu 20.04 / 22.04 / 24.04 LTS, Debian 11 / 12, AlmaLinux, Rocky Linux.
-- **cPanel Web Hosting**: Menggunakan fitur **Setup Node.js App** (CloudLinux / Phusion Passenger).
-- **Docker & Docker Compose**: Container mandiri dengan persistensi volume.
-- **Termux di Android**: Server mandiri hemat energi pada smartphone Android fisik.
+### Deployment pada umumnya
 
-## 💎 Fitur Utama Enterprise
+1. Clone repositori ini ke server Anda:
+```bash
+git clone https://github.com/myzert/YURIPAY-GOPAY.git yuripay
+```
+
+2. Masuk ke direktori proyek:
+```bash
+cd yuripay
+```
+
+3. Install dependensi Node.js:
+```bash
+npm install --production
+```
+
+4. Salin dan atur file `.env` sesuai kebutuhan Anda:
+```bash
+cp .env.example .env
+# nano .env
+```
+
+5. Jalankan otentikasi akun merchant dan ikuti prosesnya:
+```bash
+npm run login # Sesi login akan disimpan di file .GOPAY_SESI_JANGAN_DIHAPUS.json
+```
+
+6. Jalankan server:
+```bash
+npm start
+```
+
+---
+
+Untuk menjalankan server development, jalankan:
+```bash
+npm run dev
+```
+
+### Deployment pada cPanel Web Hosting (Setup Node.js App)
+
+Banyak merchant menggunakan hosting cPanel dengan fitur CloudLinux Node.js Selector. Berikut panduan konfigurasinya:
+
+1. **Masuk ke cPanel** &rarr; Buka menu **Setup Node.js App**.
+2. Klik tombol **Create Application**:
+   - **Node.js version**: Pilih versi `22.x`.
+   - **Application mode**: Pilih `Production`.
+   - **Application root**: Isi nama folder, misalnya `yuripay`.
+   - **Application startup file**: Isi `server.js`.
+3. Unggah seluruh berkas proyek YuriPay ke folder `yuripay` (kecuali folder `node_modules`).
+4. Klik **Run NPM Install** pada panel cPanel atau jalankan via Terminal cPanel:
+   ```bash
+   npm install --production
+   ```
+5. Buka Terminal cPanel, masuk ke folder aplikasi dan jalankan otentikasi GoBiz:
+   ```bash
+   cd yuripay
+   npm run login
+   ```
+6. Tambahkan konfigurasi environment pada bagian **Environment Variables** di menu cPanel atau simpan file `.env`.
+7. Klik **Restart Application**. Layanan YuriPay Anda kini aktif secara stateful di cPanel!
+
+### Deployment pada Docker
+
+```bash
+# Build dan jalankan container di latar belakang
+docker compose up -d --build
+
+# Periksa status container
+docker compose ps
+
+# Membaca log transaksi realtime
+docker compose logs -f
+```
+
+<details>
+  <summary>Advance deployment</summary>
+  <br>
+
+### Deployment di Linux VPS (Ubuntu / Debian) dengan PM2 & Nginx
+
+1. **Pasang Dependensi Sistem**:
+```bash
+sudo apt update && sudo apt install -y nodejs npm git build-essential sqlite3
+sudo npm install -g pm2
+```
+
+2. **Kloning Repositori**:
+```bash
+git clone github.com/myzert/YURIPAY-GOPAY.git yuripay
+cd yuripay
+npm install --production
+cp .env.example .env
+```
+
+3. **Login GoBiz**:
+```bash
+npm run login
+```
+
+4. **Jalankan via PM2**:
+```bash
+pm2 start ecosystem.config.js
+pm2 save
+pm2 startup
+```
+
+5. **Konfigurasi Reverse Proxy Nginx (Opsional)**:
+```nginx
+server {
+    server_name bayar.tokosaya.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+</details>
+
+## Fitur Utama Enterprise
 
 ### 1. 🧮 Algoritma Offset Kode Unik Presisi (+1 Perak)
 - **Pembelian Mikro (Rp 50 s/d < Rp 1.000)**: Dikenakan offset tetap **+Rp 1 perak** (contoh: Rp 50 &rarr; Rp 51, Rp 500 &rarr; Rp 501, Rp 75 &rarr; Rp 76) agar sangat hemat dan tepat.
@@ -114,7 +229,7 @@ https://tokosaya.com/finish?order_id=INV-9901&status_code=200&transaction_status
   $$\text{signature\_key} = \text{SHA512}(\text{order\_id} + \text{status\_code} + \text{gross\_amount} + \text{ServerKey})$$
 - Kompatibel langsung dengan modul penerima notifikasi Midtrans pada berbagai framework web.
 
-## 🏰 Arsitektur Keamanan Dual-Port
+## Arsitektur Keamanan Dual-Port
 
 YuriPay memisahkan lalu lintas jaringan menjadi dua zona keamanan terisolasi:
 
@@ -135,118 +250,7 @@ YuriPay memisahkan lalu lintas jaringan menjadi dua zona keamanan terisolasi:
 └────────────────────────────┘                        └────────────────────────────┘
 ```
 
-## 📱 Otentikasi Akun GoBiz Merchant
-
-YuriPay menyediakan alat bantu terminal interaktif untuk otentikasi resmi akun GoBiz Anda:
-
-```bash
-npm run login
-```
-
-1. Masukkan nomor ponsel yang terdaftar aktif di aplikasi GoBiz / GoFood Merchant (contoh: `085119772671`).
-2. Masukkan 4 digit kode OTP yang diterima melalui SMS atau WhatsApp dari Gojek.
-3. Sesi token akan diekstraksi dan disimpan secara otomatis ke dalam file terproteksi:
-   `📂 .GOPAY_SESI_JANGAN_DIHAPUS.json`
-4. YuriPay memiliki sistem **auto-refresh token** yang memperbarui akses token secara berkala sebelum kedaluwarsa.
-
-## 🚀 Panduan Deployment Produksi
-
-### Metode 1: Deployment di cPanel Web Hosting (Setup Node.js App)
-
-Banyak merchant menggunakan hosting cPanel dengan fitur CloudLinux Node.js Selector. Berikut panduan konfigurasinya:
-
-1. **Masuk ke cPanel** &rarr; Buka menu **Setup Node.js App**.
-2. Klik tombol **Create Application**:
-   - **Node.js version**: Pilih versi `22.x`.
-   - **Application mode**: Pilih `Production`.
-   - **Application root**: Isi nama folder, misalnya `yuripay`.
-   - **Application startup file**: Isi `server.js`.
-3. Unggah seluruh berkas proyek YuriPay ke folder `yuripay` (kecuali folder `node_modules`).
-4. Klik **Run NPM Install** pada panel cPanel atau jalankan via Terminal cPanel:
-   ```bash
-   npm install --production
-   ```
-5. Buka Terminal cPanel, masuk ke folder aplikasi dan jalankan otentikasi GoBiz:
-   ```bash
-   cd yuripay
-   node login.js
-   ```
-6. Tambahkan konfigurasi environment pada bagian **Environment Variables** di menu cPanel atau simpan file `.env`.
-7. Klik **Restart Application**. Layanan YuriPay Anda kini aktif secara stateful di cPanel!
-
-### Metode 2: Deployment di Linux VPS (Ubuntu / Debian) dengan PM2 & Nginx
-
-1. **Pasang Dependensi Sistem**:
-   ```bash
-   sudo apt update && sudo apt install -y nodejs npm git build-essential sqlite3
-   sudo npm install -g pm2
-   ```
-
-2. **Kloning Repositori**:
-   ```bash
-   git clone https://github.com/myzert/yuripay.git
-   cd yuripay
-   npm install --production
-   cp .env.example .env
-   ```
-
-3. **Login GoBiz**:
-   ```bash
-   npm run login
-   ```
-
-4. **Jalankan via PM2**:
-   ```bash
-   pm2 start ecosystem.config.js
-   pm2 save
-   pm2 startup
-   ```
-
-5. **Konfigurasi Reverse Proxy Nginx (Opsional)**:
-   ```nginx
-   server {
-       server_name bayar.tokosaya.com;
-
-       location / {
-           proxy_pass http://127.0.0.1:3001;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-
-### Metode 3: Deployment dengan Docker & Docker Compose
-
-```bash
-# Build dan jalankan container di latar belakang
-docker compose up -d --build
-
-# Periksa status container
-docker compose ps
-
-# Membaca log transaksi realtime
-docker compose logs -f
-```
-
-### Metode 4: Deployment di Termux (Android OS)
-
-```bash
-pkg update && pkg upgrade -y
-pkg install nodejs git python make clang sqlite -y
-git clone https://github.com/myzert/yuripay.git
-cd yuripay
-npm install
-cp .env.example .env
-npm run login
-npm start
-```
-
-## ⚙️ Konfigurasi Environment (.env)
+## Konfigurasi Environment (.env)
 
 | Variabel | Tipe | Wajib | Contoh / Default | Deskripsi |
 | :--- | :--- | :--- | :--- | :--- |
