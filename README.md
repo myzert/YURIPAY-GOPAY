@@ -412,9 +412,20 @@ YuriPay menyertakan dokumentasi antarmuka interaktif **OpenAPI 3.0**:
 
 ## 🤝 Kontribusi & Komunitas
 
-Kontribusi dalam bentuk apa pun sangat dihargai! Silakan pelajari:
-- **[Panduan Kontribusi](CONTRIBUTING.md)** untuk alur kerja pengembangan, standar kode, dan pembuatan Pull Request.
-- **[Daftar Kontributor](CONTRIBUTORS.md)** untuk melihat pengembang yang telah berpartisipasi dalam proyek ini.
+YuriPay adalah proyek independen yang dibangun dan dirawat bersama oleh komunitas open-source. Siapa pun dipersilakan untuk ikut berkontribusi!
+
+<p align="center">
+  <a href="https://github.com/myzert/YURIPAY-GOPAY/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=myzert/YURIPAY-GOPAY" alt="Kontributor YuriPay" style="border-radius: 12px; max-width: 100%;" />
+  </a>
+</p>
+
+- **[Panduan Kontribusi (CONTRIBUTING.md)](CONTRIBUTING.md)**: Alur kerja fork, standar kode, tata kelola git, dan pengajuan Pull Request.
+- **[Daftar Kontributor (CONTRIBUTORS.md)](CONTRIBUTORS.md)**: Lihat seluruh kontributor yang telah berpartisipasi dan panduan menambahkan profil Anda.
+
+> [!TIP]
+> **⭐ Jangan lupa kasih Star (Bintang) yah!**  
+> Dukungan satu bintang di pojok kanan atas repositori GitHub ini sangat berarti untuk memotivasi para kontributor dan membantu proyek ini dikenal lebih luas oleh komunitas developer serta merchant Indonesia.
 
 ## 🛡️ Kebijakan Keamanan
 
