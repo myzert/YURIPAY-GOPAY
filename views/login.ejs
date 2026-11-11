@@ -85,13 +85,13 @@
             <form action="/login" method="POST" class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
-                        Email Admin
+                        Email atau Username Admin
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <i class="fa-solid fa-envelope text-sm"></i>
+                            <i class="fa-solid fa-user-shield text-sm"></i>
                         </span>
-                        <input type="email" name="email" value="<%= email || '' %>" placeholder="admin@example.com" required autofocus
+                        <input type="text" name="email" value="<%= email || '' %>" placeholder="admin@example.com atau username admin" required autofocus
                             class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 focus:ring-1 focus:ring-googleBlue transition">
                     </div>
                 </div>

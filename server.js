@@ -8,11 +8,12 @@ const paymentStore = require('./src/gateway/paymentStore');
 const webhookEngine = require('./src/gateway/webhookEngine');
 const apiKeyManager = require('./src/gateway/apiKeyManager');
 const adminAuth = require('./src/gateway/adminAuth');
+const systemLogger = require('./src/gateway/systemLogger');
 
 const DASHBOARD_PORT = parseInt(process.env.DASHBOARD_PORT || '3000', 10);
 const PAYMENT_PORT = parseInt(process.env.PAYMENT_PORT || '3001', 10);
 const STORE_NAME = process.env.STORE_NAME || 'YuriDev';
-const APP_NAME = process.env.APP_NAME || 'YURIPAY by myzert';
+const APP_NAME = 'YURI PAY';
 const STORE_LOGO_URL = process.env.STORE_LOGO_URL || '';
 const STORE_WEBSITE_URL = process.env.STORE_WEBSITE_URL || '';
 const DEFAULT_SUCCESS_THEME = process.env.DEFAULT_SUCCESS_THEME || 'anime';
@@ -298,10 +299,11 @@ async function handleCreatePayment(req, res) {
         }
 
         // 3. Custom Name Sanitization (strip HTML tags, max 80 chars)
+        const currentStoreName = adminAuth.getStoreName();
         if (customName) {
             customName = String(customName).replace(/<[^>]*>?/gm, '').trim().substring(0, 80);
         } else {
-            customName = orderId ? `Pesanan ${orderId}` : `Pembayaran ${STORE_NAME}`;
+            customName = orderId ? `Pesanan ${orderId}` : `Pembayaran ${currentStoreName}`;
         }
 
         // 4. URL Validation (must be http:// or https:// if provided)
@@ -420,18 +422,21 @@ dashboardApp.get('/logout', (req, res) => {
     }
 });
 
-// Admin Dashboard UI (Protected)
-dashboardApp.get('/', requireAdminAuth, (req, res) => {
+// ----------------------------------------------------
+// Dashboard Page SSR Renderer Helper
+// ----------------------------------------------------
+function renderDashboardPage(req, res, activeSection = 'overview') {
     const session = gopayClient.getSessionInfo();
     const stats = paymentStore.getStats();
-    const recentPayments = paymentStore.getRecentPayments(100);
+    const recentPayments = paymentStore.getRecentPayments(200);
     const baseUrl = getPaymentBaseUrl(req);
     const dashboardBaseUrl = getDashboardBaseUrl(req);
     const keys = apiKeyManager.getApiKeys();
     const currentAdminEmail = adminAuth.getAdminEmail();
+    const currentStoreName = adminAuth.getStoreName();
 
     res.render('index', {
-        storeName: STORE_NAME,
+        storeName: currentStoreName,
         appName: APP_NAME,
         storeLogoUrl: STORE_LOGO_URL,
         storeWebsiteUrl: STORE_WEBSITE_URL,
@@ -449,8 +454,259 @@ dashboardApp.get('/', requireAdminAuth, (req, res) => {
         sessionValid: !!session?.access_token,
         stats,
         recentPayments,
-        formatRupiah
+        formatRupiah,
+        activeSection
     });
+}
+
+// Protected Structured Dashboard Routes
+dashboardApp.get('/', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'overview'));
+dashboardApp.get('/transactions', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'transactions'));
+dashboardApp.get('/financial', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'financial'));
+dashboardApp.get('/logs', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'logs'));
+dashboardApp.get('/pos', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'pos'));
+dashboardApp.get('/developer', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'developer'));
+dashboardApp.get('/settings', requireAdminAuth, (req, res) => renderDashboardPage(req, res, 'security'));
+
+// Financial Analytics API
+dashboardApp.get('/api/financial/summary', requireAdminAuth, (req, res) => {
+    try {
+        const allPayments = paymentStore.getRecentPayments(5000);
+        const now = new Date();
+        const todayStr = now.toISOString().slice(0, 10);
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        let todayVolume = 0, todayCount = 0;
+        let weekVolume = 0, weekCount = 0;
+        let monthVolume = 0, monthCount = 0;
+        let allVolume = 0, allCount = 0;
+        let pendingVolume = 0, pendingCount = 0;
+
+        // Daily chart data for last 7 days
+        const dailyBuckets = {};
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+            const dStr = d.toISOString().slice(0, 10);
+            dailyBuckets[dStr] = {
+                date: dStr,
+                label: d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }),
+                volume: 0,
+                count: 0
+            };
+        }
+
+        for (const p of allPayments) {
+            const created = new Date(p.created_at || p.createdAt || 0);
+            const dStr = created.toISOString().slice(0, 10);
+            const amt = Number(p.total_amount || p.totalAmount || 0);
+            const isPaid = (p.status || '').toUpperCase() === 'PAID';
+            const isPending = (p.status || '').toUpperCase() === 'PENDING';
+
+            if (isPaid) {
+                allVolume += amt;
+                allCount++;
+
+                if (dStr === todayStr) {
+                    todayVolume += amt;
+                    todayCount++;
+                }
+                if (created >= sevenDaysAgo) {
+                    weekVolume += amt;
+                    weekCount++;
+                }
+                if (created >= thirtyDaysAgo) {
+                    monthVolume += amt;
+                    monthCount++;
+                }
+                if (dailyBuckets[dStr]) {
+                    dailyBuckets[dStr].volume += amt;
+                    dailyBuckets[dStr].count++;
+                }
+            } else if (isPending) {
+                pendingVolume += amt;
+                pendingCount++;
+            }
+        }
+
+        const mdrRate = 0.00; // ASPI QRIS 0% Tier
+        const expenses = Math.round(allVolume * mdrRate);
+        const netProfit = allVolume - expenses;
+        const avgTransaction = allCount > 0 ? Math.round(allVolume / allCount) : 0;
+
+        res.json({
+            success: true,
+            summary: {
+                todayVolume,
+                todayCount,
+                weekVolume,
+                weekCount,
+                monthVolume,
+                monthCount,
+                allVolume,
+                allCount,
+                pendingVolume,
+                pendingCount,
+                expenses,
+                netProfit,
+                avgTransaction,
+                mdrRate: '0% (ASPI QRIS UMKM)',
+                chartData: Object.values(dailyBuckets)
+            }
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// Financial CSV Export
+dashboardApp.get('/api/financial/export-csv', requireAdminAuth, (req, res) => {
+    try {
+        const payments = paymentStore.getRecentPayments(5000);
+        systemLogger.logActivity('EXPORT_CSV', 'Admin mengekspor laporan transaksi ke CSV', { count: payments.length }, req);
+
+        const headers = [
+            'ID Transaksi',
+            'Order ID',
+            'TRX ID GoPay',
+            'Keterangan / Pelanggan',
+            'Nominal Dasar',
+            'Kode Unik',
+            'Total Bayar (IDR)',
+            'Status',
+            'Waktu Dibuat',
+            'Waktu Kedaluwarsa',
+            'Waktu Bayar',
+            'Webhook Status'
+        ];
+
+        const escapeCsv = (val) => {
+            if (val === null || val === undefined) return '""';
+            const str = String(val).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        const rows = payments.map(p => [
+            escapeCsv(p.id),
+            escapeCsv(p.order_id || p.orderId),
+            escapeCsv(p.trx_id || p.trxId || '-'),
+            escapeCsv(p.custom_name || p.customName || '-'),
+            p.base_amount || p.baseAmount || 0,
+            p.unique_code || p.uniqueCode || 0,
+            p.total_amount || p.totalAmount || 0,
+            escapeCsv(p.status),
+            escapeCsv(p.created_at || p.createdAt),
+            escapeCsv(p.expires_at || p.expiresAt),
+            escapeCsv(p.paid_at || p.paidAt || '-'),
+            escapeCsv(p.webhook_sent || p.webhookSent ? 'TERKIRIM' : 'BELUM')
+        ].join(','));
+
+        const csvContent = '\uFEFF' + [headers.map(h => `"${h}"`).join(','), ...rows].join('\r\n');
+        const filename = `yuripay_financial_${new Date().toISOString().slice(0, 10)}.csv`;
+
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.status(200).send(csvContent);
+    } catch (e) {
+        res.status(500).send(`Gagal mengekspor CSV: ${e.message}`);
+    }
+});
+
+// Dedicated Transactions Query & Search API
+dashboardApp.get('/api/transactions', requireAdminAuth, (req, res) => {
+    try {
+        const rawPayments = paymentStore.getRecentPayments(1000);
+        let list = [...rawPayments];
+        const search = String(req.query.search || '').trim().toLowerCase();
+        const status = String(req.query.status || 'ALL').toUpperCase();
+        const sortBy = String(req.query.sortBy || 'created_at');
+        const sortOrder = String(req.query.sortOrder || 'desc').toLowerCase();
+        const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit, 10) || 15));
+
+        // Filter by status
+        if (status !== 'ALL') {
+            list = list.filter(p => (p.status || '').toUpperCase() === status);
+        }
+
+        // Filter by search
+        if (search) {
+            list = list.filter(p => {
+                const idMatch = (p.id || '').toLowerCase().includes(search);
+                const orderMatch = (p.order_id || '').toLowerCase().includes(search);
+                const trxMatch = (p.trx_id || '').toLowerCase().includes(search);
+                const nameMatch = (p.custom_name || '').toLowerCase().includes(search);
+                const amountMatch = String(p.total_amount || '').includes(search);
+                return idMatch || orderMatch || trxMatch || nameMatch || amountMatch;
+            });
+        }
+
+        // Sorting
+        list.sort((a, b) => {
+            let valA = a[sortBy];
+            let valB = b[sortBy];
+            if (sortBy === 'created_at' || sortBy === 'paid_at') {
+                valA = new Date(valA || 0).getTime();
+                valB = new Date(valB || 0).getTime();
+            } else if (sortBy === 'total_amount' || sortBy === 'base_amount') {
+                valA = Number(valA || 0);
+                valB = Number(valB || 0);
+            }
+            if (sortOrder === 'asc') {
+                return valA > valB ? 1 : (valA < valB ? -1 : 0);
+            }
+            return valA < valB ? 1 : (valA > valB ? -1 : 0);
+        });
+
+        const total = list.length;
+        const totalPages = Math.ceil(total / limit) || 1;
+        const startIndex = (page - 1) * limit;
+        const paginated = list.slice(startIndex, startIndex + limit);
+
+        res.json({
+            success: true,
+            transactions: paginated,
+            total,
+            page,
+            limit,
+            totalPages
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// Single Transaction Detail (for Drawer)
+dashboardApp.get('/api/transaction/:id', requireAdminAuth, (req, res) => {
+    try {
+        const payment = paymentStore.getPayment(req.params.id);
+        if (!payment) {
+            return res.status(404).json({ success: false, message: 'Transaksi tidak ditemukan' });
+        }
+        const baseUrl = getPaymentBaseUrl(req);
+        const publicData = paymentStore.sanitizePublic(payment, baseUrl);
+        res.json({ success: true, transaction: payment, publicData });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// Unified Logging System API
+dashboardApp.get('/api/logs', requireAdminAuth, (req, res) => {
+    try {
+        const { category, severity, search, limit, offset } = req.query;
+        const result = systemLogger.getLogs({
+            category,
+            severity,
+            search,
+            limit: parseInt(limit, 10) || 50,
+            offset: parseInt(offset, 10) || 0
+        });
+        const stats = systemLogger.getLogStats();
+        res.json({ success: true, ...result, stats });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
 });
 
 // Get Current API Keys (Admin only)
@@ -462,12 +718,14 @@ dashboardApp.get('/api/keys', requireAdminAuth, (req, res) => {
 dashboardApp.post('/api/keys/regenerate', requireAdminAuth, (req, res) => {
     try {
         const newKeys = apiKeyManager.regenerateApiKeys();
+        systemLogger.logActivity('REGENERATE_KEYS', 'Admin men-generate ulang Kunci API (Public Key & Secret Key)', {}, req);
         res.json({
             success: true,
             message: 'Kunci API (Public Key & Secret Key) berhasil digenerate ulang!',
             data: newKeys
         });
     } catch (e) {
+        systemLogger.logError('REGENERATE_KEYS_ERROR', e.message, e, req);
         res.status(500).json({ success: false, message: e.message });
     }
 });
@@ -487,6 +745,7 @@ dashboardApp.post('/api/test-webhook-dispatch', requireAdminAuth, async (req, re
         paidAt: new Date()
     };
     try {
+        systemLogger.logActivity('TEST_WEBHOOK_DISPATCH', `Uji coba simulasi webhook ke ${webhook_url}`, { webhook_url, amount, order_id }, req);
         const result = await webhookEngine.sendNotification(testPayment);
         res.json({
             success: true,
@@ -494,6 +753,7 @@ dashboardApp.post('/api/test-webhook-dispatch', requireAdminAuth, async (req, re
             result
         });
     } catch (err) {
+        systemLogger.logError('TEST_WEBHOOK_ERROR', err.message, err, req);
         res.status(500).json({
             success: false,
             message: `Gagal mengirim webhook: ${err.message}`
@@ -518,8 +778,10 @@ dashboardApp.post('/api/admin/change-credentials', requireAdminAuth, (req, res) 
         if (result.email) {
             req.session.adminEmail = result.email;
         }
+        systemLogger.logActivity('CHANGE_CREDENTIALS', 'Admin berhasil memperbarui kredensial akun', { email: result.email }, req);
         return res.json({ success: true, message: result.message, email: result.email });
     }
+    systemLogger.logAuth('CHANGE_CREDENTIALS_FAILED', result.message, 'WARNING', req);
     return res.status(400).json({ success: false, message: result.message });
 });
 
@@ -529,16 +791,21 @@ dashboardApp.get('/api/admin/security-info', requireAdminAuth, (req, res) => {
     res.json({ success: true, data: info });
 });
 
-// Redirect customer payment routes from Dashboard Port (3000) to Customer Gateway (3001)
-dashboardApp.get('/payment/x/:id', (req, res) => {
-    const { id } = req.params;
-    const targetUrl = `${getPaymentBaseUrl(req)}/payment/x/${id}`;
-    res.redirect(targetUrl);
+// Update Merchant Store Name
+dashboardApp.post('/api/admin/store-name', requireAdminAuth, (req, res) => {
+    const { store_name } = req.body;
+    if (!store_name || typeof store_name !== 'string' || !store_name.trim()) {
+        return res.status(400).json({ success: false, message: 'Nama toko tidak boleh kosong.' });
+    }
+    const updated = adminAuth.updateStoreName(store_name.trim());
+    systemLogger.logActivity('UPDATE_STORE_NAME', `Nama toko diubah menjadi "${updated}"`, { store_name: updated }, req);
+    res.json({ success: true, message: 'Nama toko berhasil diperbarui!', store_name: updated });
 });
 
-dashboardApp.get('/pay/:id', (req, res) => {
+// Redirect customer payment routes from Dashboard Port (3000) to Customer Gateway (3001)
+dashboardApp.get(['/payment/:id', '/pay/:id', '/payment/x/:id'], (req, res) => {
     const { id } = req.params;
-    const targetUrl = `${getPaymentBaseUrl(req)}/payment/x/${id}`;
+    const targetUrl = `${getPaymentBaseUrl(req)}/payment/${id}`;
     res.redirect(targetUrl);
 });
 
@@ -599,15 +866,16 @@ dashboardApp.post('/api/webhook-test', (req, res) => {
 // 2. PAYMENT APP ROUTES (PORT 3001) - CUSTOMER FACING
 // ====================================================
 
-// Customer Checkout Page Handler (Supports UUID e.g. /payment/x/68fe4f26-dda7-11f1-9ba3-cee239a73494)
+// Customer Checkout Page Handler (Supports UUID e.g. /payment/68fe4f26-dda7-11f1-9ba3-cee239a73494)
 async function renderCustomerCheckout(req, res) {
     const { id } = req.params;
     let payment = paymentStore.getPayment(id);
+    const currentStoreName = adminAuth.getStoreName() || STORE_NAME;
 
     if (!payment) {
         return res.status(404).render('checkout', {
             error: 'Tagihan pembayaran tidak ditemukan atau sudah dihapus.',
-            storeName: STORE_NAME,
+            storeName: currentStoreName,
             appName: APP_NAME,
             storeLogoUrl: STORE_LOGO_URL,
             payment: null,
@@ -630,7 +898,7 @@ async function renderCustomerCheckout(req, res) {
 
     res.render('checkout', {
         error: null,
-        storeName: STORE_NAME,
+        storeName: currentStoreName,
         appName: APP_NAME,
         storeLogoUrl: STORE_LOGO_URL,
         payment: publicPayment,
@@ -638,12 +906,13 @@ async function renderCustomerCheckout(req, res) {
     });
 }
 
-// Enterprise customer checkout route
-paymentApp.get('/payment/x/:id', renderCustomerCheckout);
+// Enterprise customer checkout route (clean direct path, without /x/)
+paymentApp.get('/payment/:id', renderCustomerCheckout);
+paymentApp.get('/pay/:id', renderCustomerCheckout);
 
-// Backward-compatible redirect for legacy /pay/:id
-paymentApp.get('/pay/:id', (req, res) => {
-    res.redirect(301, `/payment/x/${req.params.id}`);
+// Backward-compatible redirect for legacy /payment/x/:id
+paymentApp.get('/payment/x/:id', (req, res) => {
+    res.redirect(301, `/payment/${req.params.id}`);
 });
 
 // Full Transparent Invoice API
@@ -701,6 +970,37 @@ paymentApp.use((req, res) => {
     res.status(404).json({ success: false, message: 'Resource Not Found' });
 });
 
+// 404 Handler for Dashboard App
+dashboardApp.use((req, res) => {
+    if (req.accepts('html')) {
+        return res.status(404).render('login', {
+            appName: APP_NAME,
+            storeName: STORE_NAME,
+            storeLogoUrl: STORE_LOGO_URL,
+            error: 'Halaman 404: Endpoint dashboard yang Anda minta tidak ditemukan.',
+            email: ''
+        });
+    }
+    res.status(404).json({ success: false, error: 'NOT_FOUND', message: 'Halaman dashboard tidak ditemukan' });
+});
+
+// 500 Error Handler for Dashboard App
+dashboardApp.use((err, req, res, next) => {
+    console.error('[Dashboard Error]:', err);
+    systemLogger.logError('DASHBOARD_ERROR', err.message, err, req);
+    if (res.headersSent) return next(err);
+    if (req.accepts('html')) {
+        return res.status(500).send(`
+            <div style="font-family:sans-serif;padding:40px;text-align:center;background:#090d16;color:#fff;min-height:100vh;">
+                <h1 style="color:#ef4444;font-size:24px;">500 Internal Server Error</h1>
+                <p style="color:#94a3b8;font-size:14px;">Terjadi kesalahan internal. Kesalahan telah dicatat di log sistem.</p>
+                <a href="/" style="display:inline-block;margin-top:20px;padding:10px 20px;background:#1a73e8;color:#fff;text-decoration:none;border-radius:12px;font-weight:bold;">Kembali ke Dashboard</a>
+            </div>
+        `);
+    }
+    res.status(500).json({ success: false, error: 'INTERNAL_SERVER_ERROR', message: err.message });
+});
+
 // ----------------------------------------------------
 // START SERVERS ON BOTH PORTS
 // ----------------------------------------------------
@@ -710,11 +1010,12 @@ dashboardApp.listen(DASHBOARD_PORT, () => {
     console.log(`🔐 Admin: ${adminAuth.getAdminEmail()} (PBKDF2 Password Protected)`);
     console.log(`🏬 Merchant: ${STORE_NAME} | Keamanan Port Terisolasi`);
     console.log('================================================================');
+    systemLogger.logSystem('SERVER_START', `${APP_NAME} Dashboard berjalan pada port ${DASHBOARD_PORT}`, 'SUCCESS');
 });
 
 paymentApp.listen(PAYMENT_PORT, () => {
     console.log('================================================================');
-    console.log(`💳 ${APP_NAME} CUSTOMER GATEWAY: http://localhost:${PAYMENT_PORT}/payment/x/:uuid`);
+    console.log(`💳 ${APP_NAME} CUSTOMER GATEWAY: http://localhost:${PAYMENT_PORT}/payment/:uuid`);
     console.log(`🔐 Port Customer Terpisah (Bebas dari Bocoran Token/Rahasia)`);
     console.log('================================================================');
 });

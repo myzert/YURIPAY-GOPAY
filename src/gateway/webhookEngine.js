@@ -1,6 +1,7 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const db = require('../database/db');
+const systemLogger = require('./systemLogger');
 
 // Initialize SQLite table for webhook delivery logs
 function initWebhookTable() {
@@ -140,6 +141,22 @@ async function sendWebhook(payment, transaction, event = 'settlement') {
     } catch (e) {
         console.error('[WebhookEngine] Save log error:', e.message);
     }
+
+    try {
+        systemLogger.logWebhook(
+            success ? 'WEBHOOK_SUCCESS' : 'WEBHOOK_FAILED',
+            `Webhook ${success ? 'berhasil' : 'gagal'} dikirim ke ${targetUrl} (HTTP ${responseCode})`,
+            success ? 'SUCCESS' : 'ERROR',
+            {
+                paymentId: payment.id,
+                orderId,
+                targetUrl,
+                statusCode: responseCode,
+                attempts,
+                success
+            }
+        );
+    } catch (e) {}
 
     return {
         success,

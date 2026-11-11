@@ -27,7 +27,8 @@ try {
         stocks: new Map(),
         orders: new Map(),
         topups: new Map(),
-        yuripay_payments: new Map()
+        yuripay_payments: new Map(),
+        webhook_logs: new Map()
     };
 
     if (fs.existsSync(jsonStorePath)) {
@@ -71,6 +72,22 @@ try {
                         if (lower.includes("status = 'pending'")) {
                             rows = rows.filter(r => r.status === 'PENDING');
                         }
+                        if (lower.includes('order by created_at desc')) {
+                            rows.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                        }
+                        const limitParam = params[0];
+                        if (typeof limitParam === 'number' && limitParam > 0) {
+                            rows = rows.slice(0, limitParam);
+                        }
+                        return rows;
+                    }
+                    if (lower.includes('from webhook_logs')) {
+                        let rows = Array.from(tables.webhook_logs.values());
+                        rows.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                        const limitParam = params[0];
+                        if (typeof limitParam === 'number' && limitParam > 0) {
+                            rows = rows.slice(0, limitParam);
+                        }
                         return rows;
                     }
                     if (lower.includes('from settings')) {
@@ -104,6 +121,59 @@ try {
                         const val = tables.settings.get(params[0]);
                         return val ? { value: val } : undefined;
                     }
+                    if (lower.includes('from yuripay_payments') && lower.includes('count(*) as total_count')) {
+                        const allRows = Array.from(tables.yuripay_payments.values());
+                        const todayStr = new Date().toISOString().slice(0, 10);
+                        const isToday = lower.includes("date(created_at) = date('now')");
+                        const filtered = isToday ? allRows.filter(r => (r.created_at ? new Date(r.created_at).toISOString().slice(0, 10) : '') === todayStr) : allRows;
+                        let total_volume = 0;
+                        let paid_count = 0;
+                        let pending_count = 0;
+                        let expired_count = 0;
+                        for (const r of filtered) {
+                            const amt = Number(r.total_amount || 0);
+                            if (r.status === 'PAID') {
+                                total_volume += amt;
+                                paid_count++;
+                            } else if (r.status === 'PENDING') {
+                                pending_count++;
+                            } else if (r.status === 'EXPIRED') {
+                                expired_count++;
+                            }
+                        }
+                        return {
+                            total_count: filtered.length,
+                            total_volume,
+                            paid_count,
+                            pending_count,
+                            expired_count
+                        };
+                    }
+                    if (lower.includes('from yuripay_payments') && lower.includes('count(*) as total_all')) {
+                        const allRows = Array.from(tables.yuripay_payments.values());
+                        let volume_all = 0;
+                        let paid_all = 0;
+                        let pending_all = 0;
+                        let expired_all = 0;
+                        for (const r of allRows) {
+                            const amt = Number(r.total_amount || 0);
+                            if (r.status === 'PAID') {
+                                volume_all += amt;
+                                paid_all++;
+                            } else if (r.status === 'PENDING') {
+                                pending_all++;
+                            } else if (r.status === 'EXPIRED') {
+                                expired_all++;
+                            }
+                        }
+                        return {
+                            total_all: allRows.length,
+                            volume_all,
+                            paid_all,
+                            pending_all,
+                            expired_all
+                        };
+                    }
                     if (lower.includes('from yuripay_payments where id = ?')) {
                         return tables.yuripay_payments.get(params[0]);
                     }
@@ -136,19 +206,37 @@ try {
                             custom_name: params[6],
                             redirect_url: params[7],
                             webhook_url: params[8],
-                            qris_code: params[9],
-                            qr_image: params[10],
-                            status: params[11],
-                            webhook_sent: params[12] ? 1 : 0,
-                            success_theme: params[13] || 'anime',
-                            transaction_data: params[14],
-                            created_at: new Date().toISOString(),
-                            expires_at: params[15],
-                            paid_at: params[16]
+                            success_theme: params[9] || 'anime',
+                            qris_code: params[10],
+                            qr_image: params[11],
+                            status: params[12] || 'PENDING',
+                            webhook_sent: 0,
+                            created_at: params[13] || new Date().toISOString(),
+                            expires_at: params[14],
+                            paid_at: null,
+                            transaction_data: null
                         };
                         tables.yuripay_payments.set(row.id, row);
                         saveJson();
                         return { changes: 1 };
+                    }
+                    if (lower.includes('into webhook_logs')) {
+                        const logId = Date.now() + Math.floor(Math.random() * 1000);
+                        const row = {
+                            id: logId,
+                            payment_id: params[0],
+                            order_id: params[1],
+                            webhook_url: params[2],
+                            status_code: params[3],
+                            response_body: params[4],
+                            payload: params[5],
+                            status: params[6],
+                            attempts: params[7] || 1,
+                            created_at: new Date().toISOString()
+                        };
+                        tables.webhook_logs.set(String(logId), row);
+                        saveJson();
+                        return { changes: 1, lastInsertRowid: logId };
                     }
                     if (lower.includes('update yuripay_payments')) {
                         if (lower.includes('set status = ?') && lower.includes('where id = ?')) {
@@ -158,6 +246,14 @@ try {
                                 existing.status = status;
                                 if (paid_at) existing.paid_at = paid_at;
                                 if (tx_data) existing.transaction_data = tx_data;
+                                tables.yuripay_payments.set(id, existing);
+                                saveJson();
+                            }
+                        } else if (lower.includes('set webhook_sent = 1') && lower.includes('where id = ?')) {
+                            const id = params[0];
+                            const existing = tables.yuripay_payments.get(id);
+                            if (existing) {
+                                existing.webhook_sent = 1;
                                 tables.yuripay_payments.set(id, existing);
                                 saveJson();
                             }

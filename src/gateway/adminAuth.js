@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const systemLogger = require('./systemLogger');
 
 const SETTINGS_FILE = path.join(__dirname, '../../database/settings.json');
 const AUDIT_LOG_FILE = path.join(__dirname, '../../database/audit_logs.json');
@@ -77,6 +78,20 @@ function recordAuditLog({ action, ip = 'unknown', userAgent = 'unknown', status 
         auditLogs = auditLogs.slice(0, 100);
     }
     saveAuditLogs();
+
+    try {
+        const sev = status === 'SUCCESS' ? 'SUCCESS' : (status === 'FAILED' ? 'WARNING' : 'INFO');
+        systemLogger.recordLog({
+            category: 'AUTH',
+            severity: sev,
+            action,
+            message: details || action,
+            ip,
+            userAgent,
+            details: { status, action }
+        });
+    } catch (e) {}
+
     return entry;
 }
 
@@ -91,6 +106,28 @@ function getAdminEmail() {
 }
 
 /**
+ * Get customizable merchant store name
+ */
+function getStoreName() {
+    const s = loadSettings();
+    if (s.store_name) return s.store_name;
+    if (process.env.STORE_NAME) return process.env.STORE_NAME;
+    return 'YURI STORE';
+}
+
+/**
+ * Update merchant store name dynamically
+ */
+function updateStoreName(name) {
+    if (!name || typeof name !== 'string') return getStoreName();
+    const clean = name.trim().substring(0, 60);
+    const s = loadSettings();
+    s.store_name = clean;
+    saveSettings(s);
+    return clean;
+}
+
+/**
  * Verify admin login credentials
  * Seamlessly verifies against PBKDF2 hash, or initial .env password with auto-migration to hash
  */
@@ -102,15 +139,18 @@ function verifyLogin(email, password, reqMeta = {}) {
     const s = loadSettings();
     let isPasswordCorrect = false;
 
-    if (cleanEmail !== currentEmail) {
+    const adminUser = currentEmail.split('@')[0];
+    const isEmailOrUserMatch = (cleanEmail === currentEmail) || (cleanEmail === adminUser) || (cleanEmail === 'admin');
+
+    if (!isEmailOrUserMatch) {
         recordAuditLog({
             action: 'ADMIN_LOGIN_FAILED',
             ip: reqMeta.ip,
             userAgent: reqMeta.userAgent,
             status: 'FAILED',
-            details: `Email tidak cocok (${cleanEmail})`
+            details: `Email/username tidak cocok (${cleanEmail})`
         });
-        return { success: false, message: 'Email atau kata sandi admin tidak cocok!' };
+        return { success: false, message: 'Email/Username atau kata sandi admin tidak cocok!' };
     }
 
     if (s.admin_password_hash && s.admin_password_salt) {
@@ -242,6 +282,8 @@ function getSecurityOverview() {
 
 module.exports = {
     getAdminEmail,
+    getStoreName,
+    updateStoreName,
     verifyLogin,
     updateCredentials,
     recordAuditLog,

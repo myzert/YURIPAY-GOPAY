@@ -3,6 +3,16 @@ const db = require('../database/db');
 const gopayClient = require('./gopayClient');
 const { generateQRBuffer, generateUniqueAmount } = require('./qrisHelper');
 const webhookEngine = require('./webhookEngine');
+const systemLogger = require('./systemLogger');
+
+function safeJsonParse(str) {
+    if (!str || typeof str !== 'string') return null;
+    try {
+        return JSON.parse(str);
+    } catch {
+        return null;
+    }
+}
 
 // In-memory cache for ultra-fast polling
 const activePayments = new Map();
@@ -73,7 +83,7 @@ function initPaymentTable() {
                 createdAt: new Date(row.created_at),
                 expiresAt: new Date(row.expires_at),
                 paidAt: row.paid_at ? new Date(row.paid_at) : null,
-                transaction: row.transaction_data ? JSON.parse(row.transaction_data) : null
+                transaction: safeJsonParse(row.transaction_data)
             });
         }
         console.log(`[PaymentStore] Initialized. Loaded ${activePayments.size} pending payments.`);
@@ -126,7 +136,7 @@ function mapRowToPayment(row) {
         createdAt: new Date(row.created_at),
         expiresAt: new Date(row.expires_at),
         paidAt: row.paid_at ? new Date(row.paid_at) : null,
-        transaction: row.transaction_data ? JSON.parse(row.transaction_data) : null
+        transaction: safeJsonParse(row.transaction_data)
     };
 }
 
@@ -236,6 +246,17 @@ async function createPayment({ nominal, orderId = null, customName, redirectUrl,
         console.error('[PaymentStore] Save DB error:', e.message);
     }
 
+    try {
+        systemLogger.logPayment('PAYMENT_CREATED', `Tagihan pembayaran dibuat sebesar Rp ${totalAmount.toLocaleString('id-ID')} (${finalOrderId})`, 'INFO', {
+            id: paymentId,
+            orderId: finalOrderId,
+            baseAmount,
+            uniqueCode,
+            totalAmount,
+            customName: payment.customName
+        });
+    } catch (e) {}
+
     return payment;
 }
 
@@ -244,8 +265,11 @@ async function createPayment({ nominal, orderId = null, customName, redirectUrl,
  */
 function getPayment(paymentId) {
     if (!paymentId) return null;
+    const cleanId = String(paymentId).trim();
+    if (activePayments.has(cleanId)) return activePayments.get(cleanId);
+
     try {
-        const row = db.db.prepare('SELECT * FROM yuripay_payments WHERE id = ?').get(paymentId);
+        const row = db.db.prepare('SELECT * FROM yuripay_payments WHERE id = ?').get(cleanId);
         if (row) {
             const payment = mapRowToPayment(row);
             activePayments.set(row.id, payment);
@@ -254,7 +278,12 @@ function getPayment(paymentId) {
     } catch (e) {
         console.error('[PaymentStore] Get DB error:', e.message);
     }
-    return activePayments.get(paymentId) || null;
+
+    // Fallback: check by external order_id if passed
+    const byOrder = findByOrderId(cleanId);
+    if (byOrder) return byOrder;
+
+    return null;
 }
 
 /**
@@ -281,6 +310,14 @@ async function checkPaymentStatus(paymentId) {
     if (new Date() > payment.expiresAt) {
         payment.status = 'EXPIRED';
         updatePaymentStatus(payment.id, 'EXPIRED');
+
+        try {
+            systemLogger.logPayment('PAYMENT_EXPIRED', `Tagihan pembayaran kedaluwarsa (${payment.orderId})`, 'WARNING', {
+                id: payment.id,
+                orderId: payment.orderId,
+                amount: payment.totalAmount
+            });
+        } catch (e) {}
 
         // Trigger expire webhook if not yet notified
         if (payment.webhookUrl && !payment.webhookSent) {
@@ -309,6 +346,15 @@ async function checkPaymentStatus(paymentId) {
         activePayments.set(paymentId, payment);
 
         updatePaymentStatus(payment.id, 'PAID', result.transaction, payment.paidAt);
+
+        try {
+            systemLogger.logPayment('PAYMENT_SETTLED', `Pembayaran BERHASIL diterima sebesar Rp ${payment.totalAmount.toLocaleString('id-ID')} (${payment.orderId})`, 'SUCCESS', {
+                id: payment.id,
+                orderId: payment.orderId,
+                amount: payment.totalAmount,
+                paidAt: payment.paidAt
+            });
+        } catch (e) {}
 
         // TRIGGER MIDTRANS-COMPATIBLE WEBHOOK NOTIFICATION!
         if (payment.webhookUrl && !payment.webhookSent) {
@@ -463,8 +509,9 @@ function sanitizePublic(payment, baseUrl = '') {
         unique_code: uniqueCode,
         admin_fee: 0,
         custom_name: payment.customName || payment.custom_name,
-        payment_url: `${baseUrl}/payment/x/${payment.id}`,
-        invoice_url: `${baseUrl}/payment/x/${payment.id}`,
+        payment_url: `${baseUrl}/payment/${payment.id}`,
+        invoice_url: `${baseUrl}/payment/${payment.id}`,
+        checkout_url: `${baseUrl}/payment/${payment.id}`,
         qr_image: payment.qrImage || payment.qr_image,
         qris_code: payment.qrisCode || payment.qris_code || null,
         status: payment.status,
