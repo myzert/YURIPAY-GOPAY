@@ -35,7 +35,9 @@
 7. [Spesifikasi API & Integrasi Midtrans](#-spesifikasi-api--integrasi-midtrans)
 8. [Dokumentasi Swagger UI](#-dokumentasi-swagger-ui)
 9. [Pertanyaan Umum (FAQ)](#-pertanyaan-umum-faq)
-10. [Lisensi & Hak Cipta](#-lisensi--hak-cipta)
+10. [Kontribusi & Komunitas](#-kontribusi--komunitas)
+11. [Kebijakan Keamanan](#-kebijakan-keamanan)
+12. [Lisensi & Hak Cipta](#-lisensi--hak-cipta)
 
 ## Alur Pembayaran dan Validasi
 
@@ -407,6 +409,16 @@ YuriPay menyertakan dokumentasi antarmuka interaktif **OpenAPI 3.0**:
 <summary><strong>4. Mengapa nominal pembayaran bertambah Rp 1 perak?</strong></summary>
 <p>Penambahan Rp 1 perak adalah kode unik verifikasi otomatis. Karena sistem QRIS menerima transfer dari berbagai aplikasi perbankan nasional tanpa identitas nama pengirim yang seragam, kode unik ini menjadi acuan mutlak bagi sistem untuk mencocokkan pembayaran dengan pesanan pelanggan secara 100% presisi.</p>
 </details>
+
+## 🤝 Kontribusi & Komunitas
+
+Kontribusi dalam bentuk apa pun sangat dihargai! Silakan pelajari:
+- **[Panduan Kontribusi](CONTRIBUTING.md)** untuk alur kerja pengembangan, standar kode, dan pembuatan Pull Request.
+- **[Daftar Kontributor](CONTRIBUTORS.md)** untuk melihat pengembang yang telah berpartisipasi dalam proyek ini.
+
+## 🛡️ Kebijakan Keamanan
+
+Keamanan transaksi dan perlindungan data merchant adalah prioritas utama kami. Untuk rincian versi yang didukung dan tata cara pelaporan celah kerentanan secara bertanggung jawab (*responsible disclosure*), silakan baca **[SECURITY.md](SECURITY.md)**.
 
 ## 📄 Lisensi & Hak Cipta
 
