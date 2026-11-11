@@ -14,9 +14,9 @@
                     colors: {
                         googleBlue: '#1a73e8',
                         googleBlueHover: '#1557b0',
-                        darkBg: '#0f172a',
-                        darkCard: '#1e293b',
-                        darkBorder: '#334155',
+                        darkBg: '#090d16',
+                        darkCard: '#111827',
+                        darkBorder: '#1f293d',
                         darkText: '#f8fafc',
                         darkSubtext: '#94a3b8'
                     }
@@ -24,82 +24,93 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Roboto+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
     </style>
 </head>
-<body class="bg-[#f0f4f9] dark:bg-darkBg text-slate-800 dark:text-darkText min-h-screen flex flex-col justify-between transition-colors duration-200">
+<body class="bg-slate-100/90 dark:bg-darkBg text-slate-800 dark:text-darkText min-h-screen flex flex-col justify-between transition-colors duration-200">
 
     <!-- Top Bar with Theme Toggle -->
     <header class="px-6 py-4 flex items-center justify-between max-w-5xl mx-auto w-full">
-        <div class="flex items-center space-x-2.5">
+        <div class="flex items-center space-x-3">
             <% if (typeof storeLogoUrl !== 'undefined' && storeLogoUrl) { %>
-                <img src="<%= storeLogoUrl %>" alt="<%= storeName %>" class="w-9 h-9 rounded-2xl object-cover shadow-md border border-slate-200 dark:border-darkBorder">
+                <img src="<%= storeLogoUrl %>" alt="<%= storeName %>" class="w-10 h-10 rounded-2xl object-cover shadow-md border border-slate-200 dark:border-darkBorder">
             <% } else { %>
-                <div class="w-9 h-9 rounded-2xl bg-googleBlue text-white flex items-center justify-center text-base shadow-md shadow-blue-500/20">
-                    <i class="fa-solid fa-qrcode"></i>
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center text-lg shadow-md shadow-blue-500/20">
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
             <% } %>
-            <span class="font-black text-lg text-slate-900 dark:text-white"><%= appName %></span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950 text-googleBlue dark:text-sky-400 font-bold border border-blue-200 dark:border-blue-900"><%= storeName %></span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-extrabold text-base tracking-tight text-slate-900 dark:text-white"><%= appName %></span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/80 text-googleBlue dark:text-sky-400 font-bold border border-blue-200 dark:border-blue-900">ENTERPRISE</span>
+                </div>
+                <p class="text-[11px] text-slate-400 dark:text-darkSubtext"><%= storeName %> Merchant Console</p>
+            </div>
         </div>
 
         <button onclick="toggleDarkMode()" 
-            class="w-10 h-10 rounded-xl bg-white dark:bg-darkCard hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 flex items-center justify-center transition border border-slate-200 dark:border-darkBorder shadow-sm"
-            title="Ganti Mode">
+            class="w-10 h-10 rounded-xl bg-white dark:bg-darkCard hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-amber-400 flex items-center justify-center transition border border-slate-200 dark:border-darkBorder shadow-sm"
+            title="Ganti Mode Tampilan">
             <i id="theme-icon" class="fa-solid fa-moon"></i>
         </button>
     </header>
 
     <!-- Main Login Card -->
     <main class="max-w-md w-full mx-auto p-4 my-auto">
-        <div class="bg-white dark:bg-darkCard rounded-[32px] p-8 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-200 dark:border-darkBorder transition-colors duration-200">
+        <div class="bg-white dark:bg-darkCard rounded-[32px] p-8 shadow-2xl shadow-slate-200/50 dark:shadow-none border border-slate-200/80 dark:border-darkBorder transition-colors duration-200">
             
             <div class="text-center mb-6">
-                <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-googleBlue dark:text-sky-400 flex items-center justify-center text-2xl mx-auto mb-3 border border-blue-100 dark:border-blue-900">
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-googleBlue dark:text-sky-400 flex items-center justify-center text-2xl mx-auto mb-3 border border-blue-100 dark:border-blue-900 shadow-sm">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h2 class="text-xl font-black text-slate-900 dark:text-white">Admin Dashboard Login</h2>
                 <p class="text-xs text-slate-500 dark:text-darkSubtext mt-1">
-                    Silakan masuk untuk mengakses panel kasir & kontrol <%= appName %>
+                    Masuk untuk mengelola gateway, kasir POS & mutasi GoPay
                 </p>
             </div>
 
             <% if (error) { %>
-                <div class="mb-5 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center gap-2">
-                    <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
-                    <span><%= error %></span>
+                <div class="mb-5 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-start gap-2.5">
+                    <i class="fa-solid fa-circle-exclamation text-rose-500 mt-0.5 shrink-0"></i>
+                    <span class="leading-relaxed"><%= error %></span>
                 </div>
             <% } %>
 
             <form action="/login" method="POST" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-2">
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
                         Email Admin
                     </label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-envelope text-sm"></i>
                         </span>
-                        <input type="email" name="email" value="<%= email || 'zertcihuy@gmail.com' %>" required autofocus
-                            class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 transition">
+                        <input type="email" name="email" value="<%= email || '' %>" placeholder="admin@example.com" required autofocus
+                            class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 focus:ring-1 focus:ring-googleBlue transition">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-2">
-                        Kata Sandi
-                    </label>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                            Kata Sandi Admin
+                        </label>
+                        <span class="text-[11px] text-slate-400 hover:text-googleBlue transition cursor-pointer" onclick="toggleSetupHelp()">
+                            Bantuan Setup?
+                        </span>
+                    </div>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <i class="fa-solid fa-key text-sm"></i>
                         </span>
-                        <input type="password" id="input-password" name="password" required placeholder="••••••••"
-                            class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 transition">
+                        <input type="password" id="input-password" name="password" required placeholder="Masukkan kata sandi admin"
+                            class="w-full pl-10 pr-10 py-3 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 focus:ring-1 focus:ring-googleBlue transition">
                         <button type="button" onclick="togglePasswordVisibility()" 
                             class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
                             <i id="eye-icon" class="fa-solid fa-eye"></i>
@@ -107,25 +118,47 @@
                     </div>
                 </div>
 
+                <!-- Setup / Reset Password Helper Accordion -->
+                <div id="setup-help-box" class="hidden p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-darkBorder text-[11px] text-slate-600 dark:text-darkSubtext space-y-1.5 leading-relaxed">
+                    <p class="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-info text-googleBlue"></i>
+                        <span>Konfigurasi Akun & Password Mandiri:</span>
+                    </p>
+                    <p>• Password awal didefinisikan di environment <span class="font-mono text-googleBlue dark:text-sky-400">ADMIN_PASSWORD</span> di file <span class="font-mono">.env</span>.</p>
+                    <p>• Setelah login, Anda dapat mengganti email dan password secara mandiri kapan saja di menu <span class="font-bold">Dashboard &rarr; Tab Keamanan Akun</span>.</p>
+                </div>
+
                 <div class="pt-2">
                     <button type="submit" 
-                        class="w-full py-3.5 bg-googleBlue hover:bg-googleBlueHover text-white font-bold rounded-2xl transition shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 text-sm">
+                        class="w-full py-3.5 bg-googleBlue hover:bg-googleBlueHover text-white font-extrabold rounded-2xl transition shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 text-sm active:scale-[0.99]">
                         <i class="fa-solid fa-arrow-right-to-bracket"></i>
                         <span>Masuk ke Dashboard</span>
                     </button>
                 </div>
             </form>
 
-            <div class="mt-6 pt-4 border-t border-slate-100 dark:border-darkBorder text-center">
-                <p class="text-[11px] text-slate-400 dark:text-darkSubtext">
-                    Halaman customer checkout terpisah di Port 3001
-                </p>
+            <!-- Security Badges -->
+            <div class="mt-6 pt-5 border-t border-slate-100 dark:border-darkBorder flex items-center justify-center gap-4 text-[10px] font-semibold text-slate-400 dark:text-darkSubtext">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-check text-emerald-500"></i>
+                    <span>PBKDF2-SHA512</span>
+                </span>
+                <span>•</span>
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-fingerprint text-sky-500"></i>
+                    <span>Rate-Limited IP</span>
+                </span>
+                <span>•</span>
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-amber-500"></i>
+                    <span>Port Terisolasi</span>
+                </span>
             </div>
         </div>
     </main>
 
     <footer class="text-center py-4 text-xs text-slate-400 dark:text-darkSubtext">
-        &copy; 2026 <%= appName %> by <%= storeName %>
+        <p>&copy; 2026 <%= appName %> • Merchant Gateway by <%= storeName %></p>
     </footer>
 
     <script>
@@ -157,6 +190,11 @@
                 pwd.type = 'password';
                 eye.className = 'fa-solid fa-eye';
             }
+        }
+
+        function toggleSetupHelp() {
+            const box = document.getElementById('setup-help-box');
+            box.classList.toggle('hidden');
         }
 
         initTheme();

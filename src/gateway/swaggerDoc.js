@@ -91,11 +91,11 @@ Payment Gateway QRIS Dinamis Mandiri untuk Merchant GoBiz / GoPay dengan format 
                 PaymentData: {
                     type: 'object',
                     properties: {
-                        payment_id: { type: 'string', example: 'YURI-8B30QF5' },
+                        payment_id: { type: 'string', example: '68fe4f26-dda7-11f1-9ba3-cee239a73494' },
                         order_id: { type: 'string', example: 'ORDER-8892' },
                         amount: { type: 'integer', example: 15132 },
                         custom_name: { type: 'string', example: 'Pembelian Akun VIP' },
-                        payment_url: { type: 'string', example: 'http://localhost:3001/pay/YURI-8B30QF5' },
+                        payment_url: { type: 'string', example: 'https://pay.domainanda.com/payment/x/68fe4f26-dda7-11f1-9ba3-cee239a73494' },
                         qr_image: { type: 'string', example: 'data:image/png;base64,iVBORw0KGgo...' },
                         status: { type: 'string', enum: ['PENDING', 'PAID', 'EXPIRED'], example: 'PENDING' },
                         redirect_url: { type: 'string', example: 'https://tokosaya.com/selesai' },

@@ -186,7 +186,7 @@
                     </div>
 
                     <!-- Nominal Hero Card -->
-                    <div class="p-4 bg-gradient-to-b from-blue-50/70 via-indigo-50/30 to-slate-50/80 dark:from-slate-800/90 dark:via-slate-800/50 dark:to-slate-900/40 rounded-2xl border border-blue-100 dark:border-slate-800 text-center mb-4 relative overflow-hidden">
+                    <div class="p-4 bg-gradient-to-b from-blue-50/70 via-indigo-50/30 to-slate-50/80 dark:from-slate-800/90 dark:via-slate-800/50 dark:to-slate-900/40 rounded-2xl border border-blue-100 dark:border-slate-800 text-center mb-3 relative overflow-hidden">
                         <p class="text-[11px] uppercase tracking-wider font-extrabold text-slate-500 dark:text-darkSubtext flex items-center justify-center gap-1.5">
                             <span>Total Pembayaran</span>
                             <i class="fa-solid fa-shield-halved text-[10px] text-brandBlue dark:text-sky-400"></i>
@@ -207,6 +207,58 @@
                         <p class="text-[10px] text-slate-400 dark:text-slate-400 mt-2">
                             *Transfer sesuai nominal tepat agar verifikasi mutasi otomatis berjalan instan.
                         </p>
+                    </div>
+
+                    <!-- TRANSPARENT INVOICE BREAKDOWN (Accordion Card) -->
+                    <div class="border border-slate-200 dark:border-darkBorder rounded-2xl overflow-hidden bg-slate-50/80 dark:bg-slate-800/50 mb-3 text-left">
+                        <button type="button" onclick="toggleInvoiceDetails()" 
+                            class="w-full px-4 py-2.5 text-xs font-bold flex items-center justify-between text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                            <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-file-invoice text-brandBlue dark:text-sky-400"></i>
+                                <span>Rincian & Transparansi Biaya Invoice</span>
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-300 dark:border-emerald-800">
+                                    0% Fee
+                                </span>
+                                <i id="invoice-arrow" class="fa-solid fa-chevron-down text-slate-400 text-xs transition-transform duration-200"></i>
+                            </div>
+                        </button>
+                        
+                        <div id="invoice-content" class="hidden px-4 pb-3.5 text-xs font-mono space-y-2 border-t border-slate-200/60 dark:border-slate-700/60 pt-3">
+                            <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                                <span class="text-slate-400">Harga Pesanan (Subtotal):</span>
+                                <span class="font-bold"><%= formatRupiah(payment.base_amount || payment.amount) %></span>
+                            </div>
+                            <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                                <span class="text-slate-400">Biaya QRIS Standar (ASPI):</span>
+                                <span class="font-bold text-emerald-600 dark:text-emerald-400">Rp 0 (Ditanggung Merchant)</span>
+                            </div>
+                            <% if (payment.unique_code && payment.unique_code > 0) { %>
+                                <div class="flex justify-between items-center text-slate-600 dark:text-slate-300">
+                                    <span class="text-slate-400">Kode Unik Verifikasi:</span>
+                                    <span class="font-bold text-brandBlue dark:text-sky-400">+<%= formatRupiah(payment.unique_code) %></span>
+                                </div>
+                            <% } %>
+                            <div class="flex justify-between items-center border-t border-slate-200 dark:border-slate-700 pt-2 font-bold text-slate-900 dark:text-white">
+                                <span>Total Ditagihkan:</span>
+                                <span class="text-brandBlue dark:text-sky-400 text-sm"><%= formatRupiah(payment.amount) %></span>
+                            </div>
+                            <div class="pt-2 border-t border-dashed border-slate-200 dark:border-slate-700 text-[10px] text-slate-400 space-y-1">
+                                <div class="flex justify-between">
+                                    <span>ID Tagihan UUID:</span>
+                                    <span class="font-bold text-slate-600 dark:text-slate-300 select-all"><%= payment.payment_id %></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Nomor Order:</span>
+                                    <span class="font-bold text-slate-600 dark:text-slate-300 select-all"><%= payment.order_id || payment.payment_id %></span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Merchant Resmi:</span>
+                                    <span class="font-bold text-slate-600 dark:text-slate-300"><%= storeName %></span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Dynamic QRIS Display Container -->
@@ -593,6 +645,15 @@
         function toggleInstructions() {
             const content = document.getElementById('instruction-content');
             const arrow = document.getElementById('instruction-arrow');
+            if (!content || !arrow) return;
+            const isHidden = content.classList.toggle('hidden');
+            arrow.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+
+        // Collapsible invoice details
+        function toggleInvoiceDetails() {
+            const content = document.getElementById('invoice-content');
+            const arrow = document.getElementById('invoice-arrow');
             if (!content || !arrow) return;
             const isHidden = content.classList.toggle('hidden');
             arrow.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';

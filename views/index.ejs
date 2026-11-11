@@ -238,6 +238,12 @@
                 <span>Domain & Arsitektur Port</span>
                 <span class="px-2 py-0.5 rounded-full text-[10px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-extrabold">No-Localhost</span>
             </button>
+            <button onclick="switchMainTab('tab-security')" id="btn-tab-security"
+                class="main-tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-white dark:bg-darkCard text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <i class="fa-solid fa-user-shield text-rose-500"></i>
+                <span>Keamanan & Akun Admin</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-extrabold">Setup Mandiri</span>
+            </button>
         </div>
 
         <!-- TAB 1: KASIR & TRANSAKSI -->
@@ -1127,7 +1133,7 @@
                     <ul class="text-xs space-y-2.5 text-slate-600 dark:text-darkSubtext">
                         <li class="flex items-start gap-2">
                             <i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>
-                            <span>Hanya melayani rute checkout pembayaran pelanggan: <code>/pay/:id</code>.</span>
+                            <span>Hanya melayani rute checkout pembayaran pelanggan: <code>/payment/x/:uuid</code>.</span>
                         </li>
                         <li class="flex items-start gap-2">
                             <i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>
@@ -1235,6 +1241,181 @@ server {
 }</pre>
             </div>
         </div> <!-- END TAB 4: DOMAIN & NETWORK -->
+
+        <!-- TAB 5: KEAMANAN & AKUN ADMIN (SETUP MANDIRI & AUDIT LOG) -->
+        <div id="tab-security" class="main-tab-content hidden space-y-6">
+            <!-- Header Card -->
+            <div class="bg-gradient-to-r from-rose-950 via-slate-900 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-lg border border-rose-900/40">
+                <div class="max-w-2xl">
+                    <span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-[11px] font-extrabold uppercase tracking-wider border border-rose-400/30 inline-flex items-center gap-1.5 mb-3">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Pusat Keamanan & Manajemen Akun Admin
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+                        Pengaturan Kredensial & Audit Trail
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        Atur email dan kata sandi admin secara mandiri tanpa bergantung pada konfigurasi bawaan. YuriPay mengamankan kredensial dengan salt kriptografi dan hashing PBKDF2 SHA-512 berstandar enterprise.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- FORM GANTI KREDENSIAL ADMIN (7 COLS) -->
+                <div class="lg:col-span-7 bg-white dark:bg-darkCard rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-darkBorder shadow-sm space-y-5">
+                    <div class="pb-3 border-b border-slate-100 dark:border-darkBorder">
+                        <h3 class="font-extrabold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-user-lock text-rose-500"></i>
+                            <span>Ubah Email & Kata Sandi Admin (Setup Mandiri)</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-darkSubtext mt-1">
+                            Semua perubahan langsung disimpan permanen ke basis data lokal yang aman.
+                        </p>
+                    </div>
+
+                    <!-- Dynamic Alert Message -->
+                    <div id="security-alert-box" class="hidden p-3.5 rounded-2xl text-xs font-semibold flex items-center gap-2">
+                        <i id="security-alert-icon" class="fa-solid"></i>
+                        <span id="security-alert-text"></span>
+                    </div>
+
+                    <form id="form-change-credentials" onsubmit="handleCredentialsUpdate(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                Kata Sandi Saat Ini <span class="text-rose-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-lock text-sm"></i>
+                                </span>
+                                <input type="password" id="input-curr-password" required placeholder="Masukkan kata sandi lama Anda untuk otorisasi"
+                                    class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 transition">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                Email Admin Baru (Atau Biarkan Sama)
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                    <i class="fa-solid fa-envelope text-sm"></i>
+                                </span>
+                                <input type="email" id="input-new-email" value="<%= adminEmail %>" placeholder="admin@example.com"
+                                    class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 transition">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Kata Sandi Baru (Min. 8 Karakter)
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-key text-sm"></i>
+                                    </span>
+                                    <input type="password" id="input-new-password" placeholder="Minimal 8 karakter"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 transition">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                    Konfirmasi Kata Sandi Baru
+                                </label>
+                                <div class="relative">
+                                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-check-double text-sm"></i>
+                                    </span>
+                                    <input type="password" id="input-confirm-password" placeholder="Ketik ulang kata sandi baru"
+                                        class="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:border-googleBlue dark:focus:border-sky-500 transition">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" id="btn-submit-credentials"
+                                class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-2xl transition shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 text-sm active:scale-[0.99]">
+                                <i class="fa-solid fa-shield-check"></i>
+                                <span>Simpan & Terapkan Kredensial Baru</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- RIGHT CARD: SECURITY STATUS & POSTURE (5 COLS) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-white dark:bg-darkCard rounded-3xl p-6 border border-slate-200 dark:border-darkBorder shadow-sm space-y-4">
+                        <div class="pb-3 border-b border-slate-100 dark:border-darkBorder">
+                            <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-fingerprint text-googleBlue"></i>
+                                <span>Spesifikasi Keamanan YuriPay Enterprise</span>
+                            </h4>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Metode Enkripsi Kata Sandi:</span>
+                                <p class="font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">PBKDF2-SHA512 (100,000 Iterasi + Salt)</p>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Proteksi Brute-Force IP:</span>
+                                <p class="font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-check"></i>
+                                    <span>Aktif (Maks 10 percobaan / 5 menit)</span>
+                                </p>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Format ID Tagihan:</span>
+                                <p class="font-mono text-purple-600 dark:text-purple-400 mt-0.5">/payment/x/68fe4f26-dda7-11f1-9ba3-cee239a73494</p>
+                            </div>
+                            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder">
+                                <span class="text-slate-400 text-[10px] uppercase font-bold tracking-wider">Isolasi Port Ganda:</span>
+                                <p class="font-semibold text-slate-700 dark:text-slate-300 mt-0.5">Port <%= dashboardPort %> (Admin) vs Port <%= paymentPort %> (Publik)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDIT TRAIL LOGS (FULL WIDTH) -->
+            <div class="bg-white dark:bg-darkCard rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-darkBorder shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBorder">
+                    <div>
+                        <h4 class="font-extrabold text-slate-900 dark:text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-clipboard-list text-purple-500"></i>
+                            <span>Audit Trail Keamanan & Riwayat Aktivitas Realtime</span>
+                        </h4>
+                        <p class="text-xs text-slate-500 dark:text-darkSubtext mt-0.5">
+                            Mencatat histori login, perubahan sandi, generate API key, dan percobaan akses mencurigakan
+                        </p>
+                    </div>
+                    <button onclick="fetchSecurityOverview()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-rotate" id="audit-refresh-icon"></i>
+                        <span>Segarkan Log</span>
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="text-slate-400 dark:text-darkSubtext border-b border-slate-100 dark:border-darkBorder text-[11px]">
+                                <th class="pb-2">Waktu</th>
+                                <th class="pb-2">Aktivitas</th>
+                                <th class="pb-2">Status</th>
+                                <th class="pb-2">IP Address</th>
+                                <th class="pb-2">Rincian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="security-audit-table-body" class="divide-y divide-slate-100 dark:divide-darkBorder font-mono">
+                            <tr>
+                                <td colspan="5" class="py-4 text-center text-slate-400 font-sans">Memuat riwayat audit log...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- END TAB 5: KEAMANAN & AKUN ADMIN -->
 
     </main>
 
@@ -1995,9 +2176,9 @@ def midtrans_webhook():
                                 class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-bold transition" title="Lihat Detail Pengarsipan">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
-                            <a href="${baseUrl}/pay/${item.id}" target="_blank" 
-                               class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900 text-googleBlue dark:text-sky-400 text-[11px] font-bold inline-flex items-center gap-1 transition" title="Buka Halaman Checkout Port 3001">
-                                <span>Pay</span>
+                            <a href="${baseUrl}/payment/x/${item.id}" target="_blank" 
+                               class="px-2 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900 text-googleBlue dark:text-sky-400 text-[11px] font-bold inline-flex items-center gap-1 transition" title="Buka Halaman Checkout & Invoice Port 3001">
+                                <span>Invoice</span>
                                 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
                             </a>
                         </td>
@@ -2097,7 +2278,7 @@ def midtrans_webhook():
                 qrisBox.classList.add('hidden');
             }
 
-            document.getElementById('detail-modal-open-btn').href = `${baseUrl}/pay/${item.id}`;
+            document.getElementById('detail-modal-open-btn').href = `${baseUrl}/payment/x/${item.id}`;
             document.getElementById('archive-detail-modal').classList.remove('hidden');
         }
 
@@ -2394,11 +2575,106 @@ def midtrans_webhook():
             alert('Konfigurasi Nginx berhasil disalin!');
         }
 
+        // ==============================================
+        // TAB 5: ADMIN CREDENTIALS & AUDIT LOG CONTROLLER
+        // ==============================================
+        async function handleCredentialsUpdate(e) {
+            e.preventDefault();
+            const currPassword = document.getElementById('input-curr-password').value;
+            const newEmail = document.getElementById('input-new-email').value;
+            const newPassword = document.getElementById('input-new-password').value;
+            const confirmPassword = document.getElementById('input-confirm-password').value;
+
+            const alertBox = document.getElementById('security-alert-box');
+            const alertIcon = document.getElementById('security-alert-icon');
+            const alertText = document.getElementById('security-alert-text');
+            const btn = document.getElementById('btn-submit-credentials');
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>Menyimpan Kredensial...</span>';
+
+            try {
+                const res = await fetch('/api/admin/change-credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        current_password: currPassword,
+                        new_email: newEmail,
+                        new_password: newPassword,
+                        confirm_password: confirmPassword
+                    })
+                });
+                const data = await res.json();
+
+                alertBox.classList.remove('hidden', 'bg-rose-50', 'dark:bg-rose-950/60', 'border-rose-200', 'text-rose-700', 'dark:text-rose-300', 'bg-emerald-50', 'dark:bg-emerald-950/60', 'border-emerald-200', 'text-emerald-700', 'dark:text-emerald-300');
+                if (data.success) {
+                    alertBox.classList.add('bg-emerald-50', 'dark:bg-emerald-950/60', 'border', 'border-emerald-200', 'dark:border-emerald-900', 'text-emerald-700', 'dark:text-emerald-300');
+                    alertIcon.className = 'fa-solid fa-circle-check text-emerald-500';
+                    alertText.innerText = data.message;
+                    document.getElementById('input-curr-password').value = '';
+                    document.getElementById('input-new-password').value = '';
+                    document.getElementById('input-confirm-password').value = '';
+                    fetchSecurityOverview();
+                } else {
+                    alertBox.classList.add('bg-rose-50', 'dark:bg-rose-950/60', 'border', 'border-rose-200', 'dark:border-rose-900', 'text-rose-700', 'dark:text-rose-300');
+                    alertIcon.className = 'fa-solid fa-circle-exclamation text-rose-500';
+                    alertText.innerText = data.message;
+                }
+            } catch (err) {
+                alertBox.classList.remove('hidden');
+                alertBox.className = 'p-3.5 rounded-2xl text-xs font-semibold flex items-center gap-2 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300';
+                alertIcon.className = 'fa-solid fa-circle-exclamation text-rose-500';
+                alertText.innerText = 'Gagal menghubungi server: ' + err.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-shield-check"></i><span>Simpan & Terapkan Kredensial Baru</span>';
+            }
+        }
+
+        async function fetchSecurityOverview() {
+            const tableBody = document.getElementById('security-audit-table-body');
+            const icon = document.getElementById('audit-refresh-icon');
+            if (icon) icon.classList.add('animate-spin');
+
+            try {
+                const res = await fetch('/api/admin/security-info');
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const logs = json.data.auditLogs || [];
+                    if (logs.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-slate-400 font-sans">Belum ada aktivitas terekam.</td></tr>';
+                    } else {
+                        tableBody.innerHTML = logs.map(l => {
+                            const isSuccess = l.status === 'SUCCESS';
+                            const badge = isSuccess
+                                ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400">SUCCESS</span>'
+                                : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400">FAILED</span>';
+                            const time = new Date(l.timestamp).toLocaleString('id-ID');
+                            return `
+                                <tr class="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition">
+                                    <td class="py-2.5 text-slate-400 text-[10px]">${time}</td>
+                                    <td class="py-2.5 font-bold text-slate-800 dark:text-slate-200">${l.action}</td>
+                                    <td class="py-2.5">${badge}</td>
+                                    <td class="py-2.5 text-slate-600 dark:text-slate-300 text-[11px]">${l.ip || '-'}</td>
+                                    <td class="py-2.5 text-slate-500 dark:text-darkSubtext text-[11px] font-sans truncate max-w-[200px]" title="${l.details || ''}">${l.details || '-'}</td>
+                                </tr>
+                            `;
+                        }).join('');
+                    }
+                }
+            } catch (e) {
+                if (tableBody) tableBody.innerHTML = '<tr><td colspan="5" class="py-4 text-center text-rose-400 font-sans">Gagal memuat log audit.</td></tr>';
+            } finally {
+                if (icon) icon.classList.remove('animate-spin');
+            }
+        }
+
         // On Load: Restore active payment if user refreshed the page!
         window.addEventListener('DOMContentLoaded', async () => {
             applyArchiveFilter();
             fetchRecentMutations();
             fetchWebhookLogs();
+            fetchSecurityOverview();
 
             // AUTO-RESTORE ON REFRESH (ANTI-DUPLICATE PAYMENT)
             const saved = sessionStorage.getItem('yuripay_active_payment');

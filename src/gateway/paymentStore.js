@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const db = require('../database/db');
 const gopayClient = require('./gopayClient');
 const { generateQRBuffer, generateUniqueAmount } = require('./qrisHelper');
@@ -171,7 +172,8 @@ async function createPayment({ nominal, orderId = null, customName, redirectUrl,
 
     // Generate dynamic QRIS
     const qrisResult = await gopayClient.createDynamicQRIS(totalAmount);
-    const paymentId = 'YURI-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    // Standard Enterprise UUID (e.g. 68fe4f26-dda7-11f1-9ba3-cee239a73494)
+    const paymentId = crypto.randomUUID();
     const finalOrderId = orderId || paymentId;
 
     // Generate Base64 QR Image
@@ -449,20 +451,34 @@ function sanitizePublic(payment, baseUrl = '') {
     const createdDate = payment.createdAt instanceof Date ? payment.createdAt : (payment.created_at ? new Date(payment.created_at) : null);
     const paidDate = payment.paidAt instanceof Date ? payment.paidAt : (payment.paid_at ? new Date(payment.paid_at) : null);
 
+    const baseAmt = payment.baseAmount || payment.base_amount || (payment.totalAmount || payment.total_amount);
+    const uniqueCode = payment.uniqueCode || payment.unique_code || 0;
+    const totalAmt = payment.totalAmount || payment.total_amount;
+
     return {
         payment_id: payment.id,
         order_id: payment.orderId || payment.order_id || payment.id,
-        amount: payment.totalAmount || payment.total_amount,
-        base_amount: payment.baseAmount || payment.base_amount || (payment.totalAmount || payment.total_amount),
-        unique_code: payment.uniqueCode || payment.unique_code || 0,
+        amount: totalAmt,
+        base_amount: baseAmt,
+        unique_code: uniqueCode,
+        admin_fee: 0,
         custom_name: payment.customName || payment.custom_name,
-        payment_url: `${baseUrl}/pay/${payment.id}`,
+        payment_url: `${baseUrl}/payment/x/${payment.id}`,
+        invoice_url: `${baseUrl}/payment/x/${payment.id}`,
         qr_image: payment.qrImage || payment.qr_image,
         qris_code: payment.qrisCode || payment.qris_code || null,
         status: payment.status,
         success_theme: payment.successTheme || payment.success_theme || process.env.DEFAULT_SUCCESS_THEME || 'anime',
         redirect_url: payment.redirectUrl || payment.redirect_url || null,
         webhook_url: payment.webhookUrl || payment.webhook_url || null,
+        transparency: {
+            subtotal: baseAmt,
+            qris_fee: 0,
+            qris_rate: '0%',
+            verification_code: uniqueCode,
+            total_charge: totalAmt,
+            pricing_type: 'TRANSPARENT_ZERO_SURCHARGE'
+        },
         created_at: createdDate ? createdDate.toISOString() : null,
         created_timestamp: createdDate ? createdDate.getTime() : 0,
         expires_at: expiresDate ? expiresDate.toISOString() : null,

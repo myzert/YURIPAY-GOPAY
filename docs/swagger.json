@@ -76,7 +76,7 @@
         "properties": {
           "payment_id": {
             "type": "string",
-            "example": "YURI-8B30QF5"
+            "example": "68fe4f26-dda7-11f1-9ba3-cee239a73494"
           },
           "order_id": {
             "type": "string",
@@ -92,7 +92,7 @@
           },
           "payment_url": {
             "type": "string",
-            "example": "http://localhost:3001/pay/YURI-8B30QF5"
+            "example": "https://pay.domainanda.com/payment/x/68fe4f26-dda7-11f1-9ba3-cee239a73494"
           },
           "qr_image": {
             "type": "string",

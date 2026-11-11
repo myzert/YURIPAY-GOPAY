@@ -7,6 +7,7 @@ const gopayClient = require('./src/gateway/gopayClient');
 const paymentStore = require('./src/gateway/paymentStore');
 const webhookEngine = require('./src/gateway/webhookEngine');
 const apiKeyManager = require('./src/gateway/apiKeyManager');
+const adminAuth = require('./src/gateway/adminAuth');
 
 const DASHBOARD_PORT = parseInt(process.env.DASHBOARD_PORT || '3000', 10);
 const PAYMENT_PORT = parseInt(process.env.PAYMENT_PORT || '3001', 10);
@@ -15,8 +16,8 @@ const APP_NAME = process.env.APP_NAME || 'YURIPAY by myzert';
 const STORE_LOGO_URL = process.env.STORE_LOGO_URL || '';
 const STORE_WEBSITE_URL = process.env.STORE_WEBSITE_URL || '';
 const DEFAULT_SUCCESS_THEME = process.env.DEFAULT_SUCCESS_THEME || 'anime';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'zertcihuy@gmail.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'zertcihuy@admin#123';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin#yuripay2026';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'yuripay_super_secret_session_key_9981248712';
 const PAYMENT_ROOT_REDIRECT_URL = process.env.PAYMENT_ROOT_REDIRECT_URL || process.env.STEALTH_REDIRECT_URL || STORE_WEBSITE_URL || 'https://github.com/myzert/YURIPAY-GOPAY';
 
@@ -374,25 +375,42 @@ dashboardApp.get('/login', (req, res) => {
     });
 });
 
-// Login Form Submit (Rate Limited to prevent brute force)
+// Login Form Submit (Rate Limited to prevent brute force & verified by adminAuth)
 dashboardApp.post('/login', loginRateLimiter, (req, res) => {
     const { email, password } = req.body;
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const authResult = adminAuth.verifyLogin(email, password, { ip: clientIp, userAgent });
+
+    if (authResult.success) {
         req.session.isAdmin = true;
-        req.session.adminEmail = email;
+        req.session.adminEmail = authResult.email;
         return res.redirect('/');
     }
+
     res.render('login', {
         appName: APP_NAME,
         storeName: STORE_NAME,
         storeLogoUrl: STORE_LOGO_URL,
-        error: 'Email atau Kata Sandi admin salah! Silakan coba lagi.',
+        error: authResult.message || 'Email atau Kata Sandi admin salah! Silakan coba lagi.',
         email: email || ''
     });
 });
 
 // Logout
 dashboardApp.get('/logout', (req, res) => {
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+    if (req.session && req.session.adminEmail) {
+        adminAuth.recordAuditLog({
+            action: 'ADMIN_LOGOUT',
+            ip: clientIp,
+            userAgent,
+            status: 'SUCCESS',
+            details: `Admin ${req.session.adminEmail} keluar sesi`
+        });
+    }
     if (req.session) {
         req.session.destroy(() => {
             res.redirect('/login');
@@ -410,6 +428,7 @@ dashboardApp.get('/', requireAdminAuth, (req, res) => {
     const baseUrl = getPaymentBaseUrl(req);
     const dashboardBaseUrl = getDashboardBaseUrl(req);
     const keys = apiKeyManager.getApiKeys();
+    const currentAdminEmail = adminAuth.getAdminEmail();
 
     res.render('index', {
         storeName: STORE_NAME,
@@ -421,7 +440,7 @@ dashboardApp.get('/', requireAdminAuth, (req, res) => {
         secretKey: keys.secretKey,
         publicKey: keys.publicKey,
         keysRotatedAt: keys.rotatedAt,
-        adminEmail: req.session.adminEmail || ADMIN_EMAIL,
+        adminEmail: currentAdminEmail,
         paymentPort: PAYMENT_PORT,
         dashboardPort: DASHBOARD_PORT,
         baseUrl,
@@ -482,10 +501,44 @@ dashboardApp.post('/api/test-webhook-dispatch', requireAdminAuth, async (req, re
     }
 });
 
-// Redirect customer pay route from Port 3000 to Port 3001
+// Admin Credentials Management API (Manual Email & Password setup)
+dashboardApp.post('/api/admin/change-credentials', requireAdminAuth, (req, res) => {
+    const { current_password, new_email, new_password, confirm_password } = req.body;
+    const clientIp = req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const result = adminAuth.updateCredentials({
+        currentPassword: current_password,
+        newEmail: new_email,
+        newPassword: new_password,
+        confirmPassword: confirm_password
+    }, { ip: clientIp, userAgent });
+
+    if (result.success) {
+        if (result.email) {
+            req.session.adminEmail = result.email;
+        }
+        return res.json({ success: true, message: result.message, email: result.email });
+    }
+    return res.status(400).json({ success: false, message: result.message });
+});
+
+// Admin Security Overview & Audit Logs API
+dashboardApp.get('/api/admin/security-info', requireAdminAuth, (req, res) => {
+    const info = adminAuth.getSecurityOverview();
+    res.json({ success: true, data: info });
+});
+
+// Redirect customer payment routes from Dashboard Port (3000) to Customer Gateway (3001)
+dashboardApp.get('/payment/x/:id', (req, res) => {
+    const { id } = req.params;
+    const targetUrl = `${getPaymentBaseUrl(req)}/payment/x/${id}`;
+    res.redirect(targetUrl);
+});
+
 dashboardApp.get('/pay/:id', (req, res) => {
     const { id } = req.params;
-    const targetUrl = `${getPaymentBaseUrl(req)}/pay/${id}`;
+    const targetUrl = `${getPaymentBaseUrl(req)}/payment/x/${id}`;
     res.redirect(targetUrl);
 });
 
@@ -546,8 +599,8 @@ dashboardApp.post('/api/webhook-test', (req, res) => {
 // 2. PAYMENT APP ROUTES (PORT 3001) - CUSTOMER FACING
 // ====================================================
 
-// Customer Checkout Page
-paymentApp.get('/pay/:id', async (req, res) => {
+// Customer Checkout Page Handler (Supports UUID e.g. /payment/x/68fe4f26-dda7-11f1-9ba3-cee239a73494)
+async function renderCustomerCheckout(req, res) {
     const { id } = req.params;
     let payment = paymentStore.getPayment(id);
 
@@ -563,7 +616,6 @@ paymentApp.get('/pay/:id', async (req, res) => {
     }
 
     // If still PENDING, run a quick check with GoPay before rendering
-    // so if the user reloads or re-opens after paying, it immediately renders the PAID state!
     if (payment.status === 'PENDING') {
         try {
             await paymentStore.checkPaymentStatus(id);
@@ -583,6 +635,28 @@ paymentApp.get('/pay/:id', async (req, res) => {
         storeLogoUrl: STORE_LOGO_URL,
         payment: publicPayment,
         formatRupiah
+    });
+}
+
+// Enterprise customer checkout route
+paymentApp.get('/payment/x/:id', renderCustomerCheckout);
+
+// Backward-compatible redirect for legacy /pay/:id
+paymentApp.get('/pay/:id', (req, res) => {
+    res.redirect(301, `/payment/x/${req.params.id}`);
+});
+
+// Full Transparent Invoice API
+paymentApp.get('/api/invoice/:id', async (req, res) => {
+    const { id } = req.params;
+    const payment = paymentStore.getPayment(id);
+    if (!payment) {
+        return res.status(404).json({ success: false, message: 'Tagihan pembayaran tidak ditemukan' });
+    }
+    const baseUrl = getPaymentBaseUrl(req);
+    res.json({
+        success: true,
+        invoice: paymentStore.sanitizePublic(payment, baseUrl)
     });
 });
 
@@ -633,14 +707,14 @@ paymentApp.use((req, res) => {
 dashboardApp.listen(DASHBOARD_PORT, () => {
     console.log('================================================================');
     console.log(`📊 ${APP_NAME} DASHBOARD & KASIR: http://localhost:${DASHBOARD_PORT}`);
-    console.log(`🔐 Admin: ${ADMIN_EMAIL} (Password Protected)`);
+    console.log(`🔐 Admin: ${adminAuth.getAdminEmail()} (PBKDF2 Password Protected)`);
     console.log(`🏬 Merchant: ${STORE_NAME} | Keamanan Port Terisolasi`);
     console.log('================================================================');
 });
 
 paymentApp.listen(PAYMENT_PORT, () => {
     console.log('================================================================');
-    console.log(`💳 ${APP_NAME} CUSTOMER CHECKOUT GATEWAY: http://localhost:${PAYMENT_PORT}/pay/:id`);
+    console.log(`💳 ${APP_NAME} CUSTOMER GATEWAY: http://localhost:${PAYMENT_PORT}/payment/x/:uuid`);
     console.log(`🔐 Port Customer Terpisah (Bebas dari Bocoran Token/Rahasia)`);
     console.log('================================================================');
 });
