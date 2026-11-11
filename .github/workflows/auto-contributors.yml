@@ -1,0 +1,124 @@
+name: Auto Update Contributors
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      username:
+        description: 'GitHub Username untuk ditambahkan'
+        required: true
+      contributions:
+        description: 'Jenis kontribusi (pisahkan dengan koma, misal: code,doc,infra)'
+        default: 'code,doc'
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  update-contributors:
+    # Hanya jalan jika:
+    # 1. PR di-merge ke main (bukan dari bot), ATAU
+    # 2. Komentar berisi perintah @all-contributors please add @... atau /add-contributor @..., ATAU
+    # 3. Dijalankan manual via workflow_dispatch
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && !endsWith(github.event.pull_request.user.login, '[bot]')) ||
+      (github.event_name == 'issue_comment' && (contains(github.event.comment.body, '@all-contributors please add @') || startsWith(github.event.comment.body, '/add-contributor'))) ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Process Contributor Request
+        id: process
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          EVENT_NAME="${{ github.event_name }}"
+          TARGET_USER=""
+          CONTRIBUTIONS="code,doc"
+
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            TARGET_USER="${{ github.event.pull_request.user.login }}"
+            CONTRIBUTIONS="code,doc"
+            echo "Menambahkan author dari PR yang di-merge: $TARGET_USER"
+
+          elif [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            TARGET_USER="${{ github.event.inputs.username }}"
+            CONTRIBUTIONS="${{ github.event.inputs.contributions }}"
+            echo "Manual trigger untuk user: $TARGET_USER ($CONTRIBUTIONS)"
+
+          elif [ "$EVENT_NAME" = "issue_comment" ]; then
+            COMMENT="${{ github.event.comment.body }}"
+            echo "Memproses komentar: $COMMENT"
+
+            # Tangani format: @all-contributors please add @username for code,doc
+            # atau: /add-contributor @username code,doc
+            USER_MATCH=$(echo "$COMMENT" | grep -oE '@[a-zA-Z0-9_-]+' | sed -n '2p')
+            if [ -z "$USER_MATCH" ]; then
+              USER_MATCH=$(echo "$COMMENT" | grep -oE '@[a-zA-Z0-9_-]+' | head -n 1)
+            fi
+
+            # Ambil jenis kontribusi jika ada kata kunci 'for'
+            if echo "$COMMENT" | grep -iq "for "; then
+              PARSED_CONTRIB=$(echo "$COMMENT" | sed -n 's/.*for //ip' | tr -d ' ' | tr -d '.')
+              if [ -n "$PARSED_CONTRIB" ]; then
+                CONTRIBUTIONS="$PARSED_CONTRIB"
+              fi
+            fi
+
+            TARGET_USER=$(echo "$USER_MATCH" | tr -d '@')
+            echo "Target user dari komentar: $TARGET_USER ($CONTRIBUTIONS)"
+          fi
+
+          if [ -n "$TARGET_USER" ]; then
+            node .github/scripts/update-contributors.js add "$TARGET_USER" "$CONTRIBUTIONS"
+            echo "target_user=$TARGET_USER" >> $GITHUB_OUTPUT
+            echo "contributions=$CONTRIBUTIONS" >> $GITHUB_OUTPUT
+          else
+            echo "Tidak ada target user valid yang ditemukan."
+            exit 1
+          fi
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .all-contributorsrc CONTRIBUTORS.md
+          if ! git diff --cached --quiet; then
+            git commit -m "docs(contributors): otomatis menambahkan @${{ steps.process.outputs.target_user }} [skip ci]"
+            git push origin main
+          else
+            echo "Tidak ada perubahan pada daftar kontributor."
+          fi
+
+      - name: Reply to Issue / PR Comment
+        if: github.event_name == 'issue_comment'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const user = '${{ steps.process.outputs.target_user }}';
+            const contributions = '${{ steps.process.outputs.contributions }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🎉 Sukses! @${user} telah ditambahkan ke berkas [CONTRIBUTORS.md](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTORS.md) untuk kontribusi: **${contributions}**.\n\nTerima kasih atas kontribusinya! Jangan lupa berikan ⭐ pada repositori ini jika belum ya! ✨`
+            });

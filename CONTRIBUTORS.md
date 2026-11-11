@@ -40,41 +40,21 @@ Terima kasih tak terhingga kepada seluruh kontributor hebat yang telah mendedika
 <table align="center">
   <tbody>
     <tr>
-      <td align="center" valign="top" width="200">
+      <td align="center" valign="top" width="180">
         <a href="https://github.com/myzert">
-          <img src="https://github.com/myzert.png?size=120" width="100px;" alt="myzert" style="border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" /><br />
-          <sub><b>myzert</b></sub>
+          <img src="https://avatars.githubusercontent.com/u/325584707?v=4" width="100px;" alt="myzert" style="border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" /><br />
+          <sub><b>MyZert</b></sub>
         </a>
         <br />
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Kode Backend & Gateway">💻</a>
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Desain UI & Checkout">🎨</a>
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Arsitektur Keamanan">🛡️</a>
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Pemeliharaan Sistem">🚧</a>
-        <br />
-        <small>Backend, Dual-Port Isolation, Webhook Midtrans & UI Dashboard</small>
+        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Kode Backend / Frontend">💻</a> <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Desain UI / UX">🎨</a> <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Audit Keamanan">🛡️</a> <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=myzert" title="Pemeliharaan">🚧</a>
       </td>
-      <td align="center" valign="top" width="200">
+      <td align="center" valign="top" width="180">
         <a href="https://github.com/GTPSHAX">
-          <img src="https://github.com/GTPSHAX.png?size=120" width="100px;" alt="GTPSHAX" style="border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" /><br />
-          <sub><b>GTPSHAX</b></sub>
+          <img src="https://avatars.githubusercontent.com/u/143262216?v=4" width="100px;" alt="GTPSHAX" style="border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.15);" /><br />
+          <sub><b>Rafie Hasannudin</b></sub>
         </a>
         <br />
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Dokumentasi & Panduan">📖</a>
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Runtime & Lingkungan">🚇</a>
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Perbaikan Kode">💻</a>
-        <a href="https://github.com/myzert/YURIPAY-GOPAY/pulls?q=is%3Apr+author%3AGTPSHAX" title="Ulasan & PR">👀</a>
-        <br />
-        <small>Dokumentasi README, Kurasi Alur Visual & Upgrade Node.js LTS v22</small>
-      </td>
-      <td align="center" valign="top" width="200">
-        <a href="CONTRIBUTING.md">
-          <img src="https://avatars.githubusercontent.com/u/0?v=4" width="100px;" alt="Foto Profil Anda" style="border-radius: 50%; border: 2px dashed #94a3b8;" /><br />
-          <sub><b>Kamu Selanjutnya!</b></sub>
-        </a>
-        <br />
-        <span title="Buka Kontribusi untuk Siapa Saja">✨ 💻 📖 💡 🐛</span>
-        <br />
-        <small>Terbuka untuk semua orang! Klik untuk melihat panduan kontribusi.</small>
+        <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Dokumentasi">📖</a> <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Runtime & Infrastruktur">🚇</a> <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Kode Backend / Frontend">💻</a> <a href="https://github.com/myzert/YURIPAY-GOPAY/commits?author=GTPSHAX" title="Code Review">👀</a>
       </td>
     </tr>
   </tbody>
@@ -112,13 +92,23 @@ Kami ingin semua orang merasa memiliki proyek ini. Anda bisa berkontribusi denga
 
 ---
 
-## 📝 Mau Nama & Foto Kamu Ditampilkan di Atas?
+## 🤖 Sistem Penambahan Otomatis (Auto-Add Contributor)
 
-Setelah Pull Request (PR) kamu di-merge:
-1. Buka berkas `CONTRIBUTORS.md`.
-2. Tambahkan kolom `<td>` profil GitHub kamu pada tabel di atas.
-3. Kirimkan PR dengan judul: `docs: tambah @username ke daftar kontributor`.
-4. Nama dan foto profil kamu akan otomatis terpampang secara bangga di halaman ini!
+Daftar kontributor ini dikelola secara **otomatis** oleh GitHub Actions bot! Anda tidak perlu repot-repot mengedit tabel HTML secara manual:
+
+### 1. Otomatis saat PR Di-merge (Paling Mudah)
+Setiap kali Pull Request (PR) Anda berhasil di-merge ke branch `main`, bot GitHub Actions akan **secara otomatis** mendeteksi akun Anda, mengambil foto profil GitHub Anda, dan menambahkannya langsung ke daftar di atas!
+
+### 2. Melalui Request Komentar di Issue / PR
+Anda atau maintainer juga bisa meminta bot untuk menambahkan kontributor cukup dengan meninggalkan komentar di Issue atau Pull Request mana pun:
+```markdown
+@all-contributors please add @username for code,doc
+```
+*atau:*
+```markdown
+/add-contributor @username code,doc
+```
+> Bot akan otomatis memproses permintaan, memperbarui tabel foto di berkas ini, dan membalas komentar Anda setelah selesai! 🚀
 
 ---
 

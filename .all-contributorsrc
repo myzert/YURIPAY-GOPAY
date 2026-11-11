@@ -1,0 +1,39 @@
+{
+  "projectName": "YURIPAY-GOPAY",
+  "projectOwner": "myzert",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "CONTRIBUTORS.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "commitConvention": "angular",
+  "contributorsPerList": 5,
+  "contributors": [
+    {
+      "login": "myzert",
+      "name": "MyZert",
+      "avatar_url": "https://avatars.githubusercontent.com/u/325584707?v=4",
+      "profile": "https://github.com/myzert",
+      "contributions": [
+        "code",
+        "design",
+        "security",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "GTPSHAX",
+      "name": "Rafie Hasannudin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143262216?v=4",
+      "profile": "https://github.com/GTPSHAX",
+      "contributions": [
+        "doc",
+        "infra",
+        "code",
+        "review"
+      ]
+    }
+  ]
+}
