@@ -6,25 +6,87 @@ const path = require('path');
 const gopayClient = require('./src/gateway/gopayClient');
 const paymentStore = require('./src/gateway/paymentStore');
 const webhookEngine = require('./src/gateway/webhookEngine');
+const apiKeyManager = require('./src/gateway/apiKeyManager');
 
 const DASHBOARD_PORT = parseInt(process.env.DASHBOARD_PORT || '3000', 10);
 const PAYMENT_PORT = parseInt(process.env.PAYMENT_PORT || '3001', 10);
 const STORE_NAME = process.env.STORE_NAME || 'YuriDev';
 const APP_NAME = process.env.APP_NAME || 'YURIPAY by myzert';
 const STORE_LOGO_URL = process.env.STORE_LOGO_URL || '';
+const STORE_WEBSITE_URL = process.env.STORE_WEBSITE_URL || '';
 const DEFAULT_SUCCESS_THEME = process.env.DEFAULT_SUCCESS_THEME || 'anime';
-const API_KEY = process.env.API_KEY || 'yuripay_live_key_9981248712';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'zertcihuy@gmail.com';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'zertcihuy@admin#123';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'yuripay_super_secret_session_key_9981248712';
-const PAYMENT_ROOT_REDIRECT_URL = process.env.PAYMENT_ROOT_REDIRECT_URL || 'https://www.google.com';
+const PAYMENT_ROOT_REDIRECT_URL = process.env.PAYMENT_ROOT_REDIRECT_URL || process.env.STEALTH_REDIRECT_URL || STORE_WEBSITE_URL || 'https://github.com/myzert/YURIPAY-GOPAY';
 
+/**
+ * Detect client protocol (HTTPS / HTTP) respecting reverse proxies (Cloudflare, Nginx, cPanel)
+ */
+function getClientProtocol(req) {
+    if (req.headers['x-forwarded-proto']) {
+        return req.headers['x-forwarded-proto'].split(',')[0].trim().toLowerCase();
+    }
+    if (req.headers['x-forwarded-ssl'] === 'on' || req.headers['front-end-https'] === 'on') {
+        return 'https';
+    }
+    return req.protocol || (req.secure ? 'https' : 'http');
+}
+
+/**
+ * Resolve Public Customer Checkout Gateway Base URL
+ * Intelligently handles custom domains, reverse proxies (Nginx/Cloudflare/cPanel), and localhost
+ */
 function getPaymentBaseUrl(req) {
     if (process.env.PAYMENT_BASE_URL) {
         return process.env.PAYMENT_BASE_URL.replace(/\/$/, '');
     }
-    const host = req.get('host')?.split(':')[0] || 'localhost';
-    return `http://${host}:${PAYMENT_PORT}`;
+    if (process.env.PUBLIC_PAYMENT_URL) {
+        return process.env.PUBLIC_PAYMENT_URL.replace(/\/$/, '');
+    }
+    if (process.env.APP_URL) {
+        return process.env.APP_URL.replace(/\/$/, '');
+    }
+
+    const proto = getClientProtocol(req);
+    const hostHeader = req.get('x-forwarded-host') || req.get('host') || 'localhost';
+    const hostWithoutPort = hostHeader.split(':')[0];
+    const incomingPort = hostHeader.includes(':') ? hostHeader.split(':')[1] : null;
+
+    const isLocalhost = hostWithoutPort === 'localhost' || hostWithoutPort === '127.0.0.1' || hostWithoutPort === '::1';
+    const isRawIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostWithoutPort);
+
+    // If request comes through a real domain name (production reverse proxy like pay.merchant.com)
+    if (!isLocalhost && !isRawIp) {
+        if (incomingPort && incomingPort !== '80' && incomingPort !== '443') {
+            return `${proto}://${hostWithoutPort}:${incomingPort}`;
+        }
+        return `${proto}://${hostWithoutPort}`;
+    }
+
+    // Local / direct IP development
+    const port = PAYMENT_PORT ? `:${PAYMENT_PORT}` : '';
+    return `${proto}://${hostWithoutPort}${port}`;
+}
+
+/**
+ * Resolve Internal Admin Dashboard Base URL
+ */
+function getDashboardBaseUrl(req) {
+    if (process.env.DASHBOARD_BASE_URL) {
+        return process.env.DASHBOARD_BASE_URL.replace(/\/$/, '');
+    }
+    const proto = getClientProtocol(req);
+    const hostHeader = req.get('x-forwarded-host') || req.get('host') || 'localhost';
+    const hostWithoutPort = hostHeader.split(':')[0];
+    const isLocalhost = hostWithoutPort === 'localhost' || hostWithoutPort === '127.0.0.1' || hostWithoutPort === '::1';
+    const isRawIp = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostWithoutPort);
+
+    if (!isLocalhost && !isRawIp) {
+        return `${proto}://${hostWithoutPort}`;
+    }
+    const port = DASHBOARD_PORT ? `:${DASHBOARD_PORT}` : '';
+    return `${proto}://${hostWithoutPort}${port}`;
 }
 
 function formatRupiah(number) {
@@ -180,6 +242,32 @@ paymentApp.set('view engine', 'ejs');
 // ====================================================
 async function handleCreatePayment(req, res) {
     try {
+        // 0. Authorization & Token Verification (Admin Session, Secret Key, or Public Key)
+        const isSessionAdmin = req.session && req.session.isAdmin;
+        const token = apiKeyManager.extractToken(req);
+        let authType = 'session_admin';
+
+        if (!isSessionAdmin) {
+            if (!token) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'UNAUTHORIZED',
+                    message: 'Akses ditolak: Gunakan header x-api-key atau Authorization: Bearer <SecretKey/PublicKey>'
+                });
+            }
+            if (apiKeyManager.isSecretKeyValid(token)) {
+                authType = 'secret_key';
+            } else if (apiKeyManager.isPublicKeyValid(token)) {
+                authType = 'public_key';
+            } else {
+                return res.status(403).json({
+                    success: false,
+                    error: 'INVALID_API_KEY',
+                    message: 'Kunci API (Public Key / Secret Key) yang diberikan tidak valid.'
+                });
+            }
+        }
+
         const rawNominal = req.body.nominal || req.body.amount;
         const rawOrderId = req.body.order_id || req.body.orderId || null;
         let customName = req.body.custom_name || req.body.memo || '';
@@ -253,6 +341,10 @@ async function handleCreatePayment(req, res) {
 
         const baseUrl = getPaymentBaseUrl(req);
         const publicData = paymentStore.sanitizePublic(payment, baseUrl);
+        const keys = apiKeyManager.getApiKeys();
+
+        publicData.auth_type = authType;
+        publicData.client_key = keys.publicKey;
 
         res.json({
             success: true,
@@ -316,22 +408,78 @@ dashboardApp.get('/', requireAdminAuth, (req, res) => {
     const stats = paymentStore.getStats();
     const recentPayments = paymentStore.getRecentPayments(100);
     const baseUrl = getPaymentBaseUrl(req);
+    const dashboardBaseUrl = getDashboardBaseUrl(req);
+    const keys = apiKeyManager.getApiKeys();
 
     res.render('index', {
         storeName: STORE_NAME,
         appName: APP_NAME,
         storeLogoUrl: STORE_LOGO_URL,
+        storeWebsiteUrl: STORE_WEBSITE_URL,
         defaultSuccessTheme: DEFAULT_SUCCESS_THEME,
-        apiKey: API_KEY,
+        apiKey: keys.secretKey,
+        secretKey: keys.secretKey,
+        publicKey: keys.publicKey,
+        keysRotatedAt: keys.rotatedAt,
         adminEmail: req.session.adminEmail || ADMIN_EMAIL,
         paymentPort: PAYMENT_PORT,
         dashboardPort: DASHBOARD_PORT,
         baseUrl,
+        dashboardBaseUrl,
+        paymentBaseUrl: baseUrl,
         sessionValid: !!session?.access_token,
         stats,
         recentPayments,
         formatRupiah
     });
+});
+
+// Get Current API Keys (Admin only)
+dashboardApp.get('/api/keys', requireAdminAuth, (req, res) => {
+    res.json({ success: true, data: apiKeyManager.getApiKeys() });
+});
+
+// Regenerate API Keys (Admin only)
+dashboardApp.post('/api/keys/regenerate', requireAdminAuth, (req, res) => {
+    try {
+        const newKeys = apiKeyManager.regenerateApiKeys();
+        res.json({
+            success: true,
+            message: 'Kunci API (Public Key & Secret Key) berhasil digenerate ulang!',
+            data: newKeys
+        });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// Interactive Webhook Test Dispatcher
+dashboardApp.post('/api/test-webhook-dispatch', requireAdminAuth, async (req, res) => {
+    const { webhook_url, amount, order_id } = req.body;
+    if (!webhook_url) {
+        return res.status(400).json({ success: false, message: 'URL Webhook wajib diisi' });
+    }
+    const testPayment = {
+        id: `YURI-TEST-${Date.now().toString().slice(-6)}`,
+        orderId: order_id || `ORDER-${Date.now().toString().slice(-6)}`,
+        totalAmount: parseInt(amount || 50000, 10),
+        webhookUrl: webhook_url,
+        createdAt: new Date(),
+        paidAt: new Date()
+    };
+    try {
+        const result = await webhookEngine.sendNotification(testPayment);
+        res.json({
+            success: true,
+            message: 'Simulasi notifikasi webhook berhasil dikirim ke server merchant',
+            result
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: `Gagal mengirim webhook: ${err.message}`
+        });
+    }
 });
 
 // Redirect customer pay route from Port 3000 to Port 3001

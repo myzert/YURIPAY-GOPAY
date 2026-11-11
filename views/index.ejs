@@ -213,7 +213,36 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Main Navigation Tabs (Enterprise Stripe / Midtrans Style) -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-3 mb-6 border-b border-slate-200 dark:border-darkBorder no-scrollbar">
+            <button onclick="switchMainTab('tab-pos')" id="btn-tab-pos"
+                class="main-tab-btn active px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-googleBlue text-white shadow-md shadow-blue-500/20">
+                <i class="fa-solid fa-cash-register"></i>
+                <span>Kasir & Transaksi POS</span>
+            </button>
+            <button onclick="switchMainTab('tab-methods')" id="btn-tab-methods"
+                class="main-tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-white dark:bg-darkCard text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <i class="fa-solid fa-credit-card text-emerald-500"></i>
+                <span>Metode Pembayaran</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-extrabold">ASPI QRIS 0%</span>
+            </button>
+            <button onclick="switchMainTab('tab-developer')" id="btn-tab-developer"
+                class="main-tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-white dark:bg-darkCard text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <i class="fa-solid fa-terminal text-purple-500"></i>
+                <span>Sandbox API & Docs Interaktif</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-extrabold">Keys & Tester</span>
+            </button>
+            <button onclick="switchMainTab('tab-network')" id="btn-tab-network"
+                class="main-tab-btn px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 shrink-0 bg-white dark:bg-darkCard text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <i class="fa-solid fa-network-wired text-sky-500"></i>
+                <span>Domain & Arsitektur Port</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-extrabold">No-Localhost</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: KASIR & TRANSAKSI -->
+        <div id="tab-pos" class="main-tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
             <!-- LEFT COLUMN: KASIR & QRIS GENERATOR (7 Cols) -->
             <div class="lg:col-span-7 space-y-6">
@@ -565,6 +594,647 @@
             </div>
 
         </div>
+        </div> <!-- END TAB 1: KASIR & TRANSAKSI -->
+
+        <!-- TAB 2: METODE PEMBAYARAN (ENTERPRISE PAYMENT METHODS) -->
+        <div id="tab-methods" class="main-tab-content hidden space-y-6">
+            <!-- Header Banner -->
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+                <div class="relative z-10 max-w-2xl">
+                    <span class="px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-extrabold uppercase tracking-wider backdrop-blur-md inline-flex items-center gap-1.5 mb-3">
+                        <i class="fa-solid fa-certificate text-amber-300"></i>
+                        Standar Nasional QRIS Bank Indonesia & ASPI
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+                        Satu QRIS Dinamis untuk Seluruh Bank & E-Wallet
+                    </h2>
+                    <p class="text-xs sm:text-sm text-emerald-100 leading-relaxed">
+                        YuriPay mentransformasi akun GoBiz merchant Anda menjadi payment gateway mandiri berkecepatan tinggi dengan biaya gateway <strong>Rp 0 (0% Gateway Fee)</strong>. Pelanggan dapat memindai dan membayar menggunakan aplikasi perbankan atau dompet digital apa pun di Indonesia.
+                    </p>
+                </div>
+                <div class="absolute -right-8 -bottom-10 opacity-15 pointer-events-none text-white text-[180px]">
+                    <i class="fa-solid fa-qrcode"></i>
+                </div>
+            </div>
+
+            <!-- Payment Methods Channels Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- E-Wallets -->
+                <div class="bg-white dark:bg-darkCard rounded-3xl p-6 border border-slate-200 dark:border-darkBorder shadow-sm">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBorder mb-4">
+                        <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-mobile-screen-button text-emerald-500"></i>
+                            <span>Dompet Digital (E-Wallets Nasional)</span>
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                            🟢 7 Channels Aktif
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                GoPay
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">GoPay / GoPay Plus</p>
+                                <p class="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold">Native Settlement</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                Shopee
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">ShopeePay / SPayLater</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                DANA
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">DANA Dompet Digital</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                OVO
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">OVO Cash & Points</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                LinkAja
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">LinkAja BUMN</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                Astra
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">AstraPay & i.saku</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Banking -->
+                <div class="bg-white dark:bg-darkCard rounded-3xl p-6 border border-slate-200 dark:border-darkBorder shadow-sm">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBorder mb-4">
+                        <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                            <i class="fa-solid fa-building-columns text-googleBlue dark:text-sky-400"></i>
+                            <span>Mobile Banking (Seluruh Bank Indonesia)</span>
+                        </h3>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-950 text-googleBlue dark:text-sky-400 border border-blue-200 dark:border-blue-900">
+                            🟢 All Banks Supported
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-800 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                BCA
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">BCA Mobile & myBCA</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                Livin'
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Livin' by Mandiri</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                BRI
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">BRImo (Bank BRI)</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                BNI
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">BNI Mobile Banking</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                Jago
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">Bank Jago & Seabank</p>
+                                <p class="text-[10px] text-slate-400">Digital Banking QRIS</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-sm">
+                                BSI
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">BSI Mobile & Permata</p>
+                                <p class="text-[10px] text-slate-400">QRIS ASPI Compatible</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table: YuriPay vs Conventional Gateway -->
+            <div class="bg-white dark:bg-darkCard rounded-3xl p-6 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-scale-balanced text-googleBlue dark:text-sky-400"></i>
+                    <span>Perbandingan YuriPay Self-Hosted vs Payment Gateway Pihak Ketiga</span>
+                </h3>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead>
+                            <tr class="border-b border-slate-200 dark:border-darkBorder text-slate-500 uppercase tracking-wider text-[10px]">
+                                <th class="pb-3 font-bold">Fitur & Parameter</th>
+                                <th class="pb-3 font-bold text-emerald-600 dark:text-emerald-400">YURIPAY (Self-Hosted)</th>
+                                <th class="pb-3 font-bold text-slate-400">Payment Gateway Konvensional</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <tr>
+                                <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">Biaya Potongan Transaksi (Gateway Fee)</td>
+                                <td class="py-3 font-bold text-emerald-600 dark:text-emerald-400">0% (Gratis / Bebas Potongan)</td>
+                                <td class="py-3 text-rose-500">1.5% s/d 2.9% per transaksi</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">Pencairan Dana (Settlement)</td>
+                                <td class="py-3 font-bold text-emerald-600 dark:text-emerald-400">Realtime langsung ke akun GoBiz Anda</td>
+                                <td class="py-3 text-slate-500">Hold dana 1 - 3 hari kerja (T+1 s/d T+3)</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">Biaya Penarikan Dana (Withdrawal Fee)</td>
+                                <td class="py-3 font-bold text-emerald-600 dark:text-emerald-400">Rp 0 (Mengikuti aturan resmi GoBiz)</td>
+                                <td class="py-3 text-rose-500">Rp 2.500 s/d Rp 4.500 per penarikan</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 font-semibold text-slate-800 dark:text-slate-200">Kontrol Data & Privasi</td>
+                                <td class="py-3 font-bold text-emerald-600 dark:text-emerald-400">100% Milik Anda (Tersimpan di VPS/Server Anda)</td>
+                                <td class="py-3 text-slate-500">Tersimpan di cloud server pihak ketiga</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> <!-- END TAB 2: METODE PEMBAYARAN -->
+
+        <!-- TAB 3: DEVELOPER SANDBOX & INTERACTIVE DOCS -->
+        <div id="tab-developer" class="main-tab-content hidden space-y-6">
+            
+            <!-- API Credentials Management (Public Key & Secret Key) -->
+            <div class="bg-white dark:bg-darkCard rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-darkBorder mb-5">
+                    <div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 inline-block mb-1">
+                            Developer Credentials
+                        </span>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-key text-purple-600 dark:text-purple-400"></i>
+                            <span>Kunci API Resmi (Public Key & Secret Key)</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-darkSubtext mt-0.5">
+                            Kunci autentikasi untuk memanggil endpoint API dan memvalidasi notifikasi webhook.
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button onclick="confirmRegenerateKeys()"
+                            class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-arrows-rotate"></i>
+                            <span>Generate Ulang Kunci</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <!-- Public Key Card -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder">
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-globe text-sky-500"></i>
+                                <span>Public Key (Client Key)</span>
+                            </span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold">CLIENT SAFE</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-darkSubtext mb-2.5">
+                            Digunakan pada aplikasi frontend, SDK kasir, atau browser checkout.
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="dev-public-key" readonly value="<%= publicKey %>"
+                                class="w-full bg-white dark:bg-darkCard px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder text-xs font-mono font-bold text-slate-800 dark:text-slate-200 select-all">
+                            <button onclick="copyDevKey('dev-public-key', 'Public Key tersalin!')"
+                                class="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition shrink-0">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Secret Key Card -->
+                    <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder">
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-lock text-rose-500"></i>
+                                <span>Secret Key (Server Key)</span>
+                            </span>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 font-bold">RAHASIA</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 dark:text-darkSubtext mb-2.5">
+                            Digunakan untuk panggilan backend server-to-server. <strong>Jangan pernah</strong> dibocorkan.
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <input type="password" id="dev-secret-key" readonly value="<%= secretKey %>"
+                                class="w-full bg-white dark:bg-darkCard px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder text-xs font-mono font-bold text-slate-800 dark:text-slate-200 select-all">
+                            <button type="button" onclick="toggleSecretKeyVisibility()"
+                                class="px-3 py-2 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition shrink-0" title="Tampilkan / Sembunyikan">
+                                <i id="eye-icon" class="fa-regular fa-eye"></i>
+                            </button>
+                            <button onclick="copyDevKey('dev-secret-key', 'Secret Key tersalin!')"
+                                class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition shrink-0">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Terakhir dirotasi: <strong id="dev-rotated-time" class="text-slate-600 dark:text-slate-300"><%= keysRotatedAt %></strong></span>
+                    <span class="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Enkripsi Kunci Aman</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE API PLAYGROUND / DOCS TESTER -->
+            <div class="bg-white dark:bg-darkCard rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-darkBorder mb-5">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i class="fa-solid fa-flask-vial text-emerald-600 dark:text-emerald-400"></i>
+                            <span>Interactive API Playground (Test Endpoint Mandiri)</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-darkSubtext mt-0.5">
+                            Coba langsung endpoint REST API YuriPay tanpa perlu aplikasi pihak ketiga seperti Postman.
+                        </p>
+                    </div>
+
+                    <!-- Endpoint Selector -->
+                    <div class="flex items-center gap-2">
+                        <select id="sandbox-endpoint-select" onchange="switchSandboxEndpoint()"
+                            class="px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-googleBlue">
+                            <option value="create">[POST] /api/create-payment (Buat Tagihan)</option>
+                            <option value="check">[GET] /api/check-payment/:id (Cek Status)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Left: Request Builder Form (7 Cols) -->
+                    <div class="lg:col-span-7 space-y-4">
+                        <div id="sandbox-create-fields" class="space-y-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                        Nominal Pembayaran (Rp)
+                                    </label>
+                                    <input type="number" id="sandbox-nominal" value="10000" min="50"
+                                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-mono font-bold text-slate-800 dark:text-slate-100">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                        Order ID (Unik)
+                                    </label>
+                                    <input type="text" id="sandbox-order-id" placeholder="ORDER-TEST-001"
+                                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-mono text-slate-800 dark:text-slate-100">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                        Memo / Catatan Tagihan
+                                    </label>
+                                    <input type="text" id="sandbox-memo" value="Pembelian Sandbox Test"
+                                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs text-slate-800 dark:text-slate-100">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                        Success Theme
+                                    </label>
+                                    <select id="sandbox-theme"
+                                        class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs text-slate-800 dark:text-slate-100">
+                                        <option value="anime">Anime (Cute Marin Kitagawa + Pop-up)</option>
+                                        <option value="default">Default (Corporate Fintech Chime)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                    Webhook Callback URL (Opsional)
+                                </label>
+                                <input type="url" id="sandbox-webhook" placeholder="https://api.domainanda.com/webhook/gopay"
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-mono text-slate-800 dark:text-slate-100">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                    Redirect URL Pelanggan (Opsional)
+                                </label>
+                                <input type="url" id="sandbox-redirect" placeholder="https://tokosaya.com/selesai"
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-mono text-slate-800 dark:text-slate-100">
+                            </div>
+                        </div>
+
+                        <!-- Check Status Fields (hidden initially) -->
+                        <div id="sandbox-check-fields" class="space-y-4 hidden">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                                    Payment ID / Invoice ID
+                                </label>
+                                <input type="text" id="sandbox-check-id" placeholder="YURI-XXXXXX atau Order ID"
+                                    class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-mono text-slate-800 dark:text-slate-100">
+                            </div>
+                        </div>
+
+                        <!-- Auth Mode Option -->
+                        <div class="p-3 bg-purple-50/50 dark:bg-purple-950/30 rounded-2xl border border-purple-200 dark:border-purple-900/50 flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-shield"></i>
+                                <span>Token Otorisasi Permintaan:</span>
+                            </span>
+                            <div class="flex items-center gap-3 text-xs font-semibold">
+                                <label class="inline-flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="sandbox-auth" value="secret" checked class="text-purple-600">
+                                    <span>Secret Key</span>
+                                </label>
+                                <label class="inline-flex items-center gap-1 cursor-pointer">
+                                    <input type="radio" name="sandbox-auth" value="public" class="text-purple-600">
+                                    <span>Public Key</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Execute Button -->
+                        <button onclick="executeSandboxTest()" id="btn-sandbox-run"
+                            class="w-full py-3 bg-gradient-to-r from-googleBlue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-2xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-md shadow-blue-500/20">
+                            <i id="sandbox-run-icon" class="fa-solid fa-play"></i>
+                            <span>Kirim Permintaan API (Execute Test)</span>
+                        </button>
+                    </div>
+
+                    <!-- Right: Live Response Output (5 Cols) -->
+                    <div class="lg:col-span-5 flex flex-col">
+                        <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-terminal text-googleBlue dark:text-sky-400"></i>
+                                <span>Hasil Respon Server (Response Console)</span>
+                            </span>
+                            <span id="sandbox-latency-badge" class="font-mono text-[10px] text-slate-400">⚡ Siaga</span>
+                        </div>
+
+                        <div class="flex-1 bg-slate-900 text-slate-200 rounded-2xl p-4 font-mono text-[11px] overflow-auto max-h-[340px] border border-slate-800 shadow-inner flex flex-col justify-between">
+                            <pre id="sandbox-output" class="whitespace-pre-wrap break-all text-emerald-400">
+// Tekan tombol "Kirim Permintaan API" untuk menguji endpoint secara realtime...
+{
+  "status": "ready",
+  "endpoint": "/api/create-payment"
+}
+                            </pre>
+
+                            <!-- Direct Action Link to Checkout -->
+                            <div id="sandbox-checkout-link-box" class="pt-3 border-t border-slate-800 mt-2 hidden">
+                                <a id="sandbox-checkout-link" href="#" target="_blank"
+                                    class="inline-flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-bold underline">
+                                    <span>👉 Buka Halaman Checkout Hasil Uji Coba</span>
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SIMULATOR WEBHOOK MIDTRANS -->
+            <div class="bg-white dark:bg-darkCard rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <div class="pb-4 border-b border-slate-100 dark:border-darkBorder mb-5">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-solid fa-bell text-amber-500"></i>
+                        <span>Uji Coba Notifikasi Webhook HTTP (Midtrans Format)</span>
+                    </h3>
+                    <p class="text-xs text-slate-500 dark:text-darkSubtext mt-0.5">
+                        Kirim payload notifikasi transaksi lunas palsu (*mock simulation*) dengan signature SHA-512 ke backend server Anda untuk menguji integrasi callback.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-8">
+                        <label class="block text-xs font-bold text-slate-500 dark:text-darkSubtext uppercase tracking-wider mb-1">
+                            URL Webhook Backend Anda
+                        </label>
+                        <input type="url" id="test-wh-url" placeholder="https://api.domainanda.com/webhook/midtrans"
+                            class="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder rounded-xl text-xs font-mono text-slate-900 dark:text-white">
+                    </div>
+                    <div class="md:col-span-4 flex items-end">
+                        <button onclick="dispatchTestWebhook()" id="btn-test-wh"
+                            class="w-full py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm">
+                            <i id="test-wh-icon" class="fa-solid fa-paper-plane"></i>
+                            <span>Kirim Test Webhook</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="test-wh-result-box" class="mt-4 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-darkBorder text-xs hidden">
+                    <p class="font-bold text-slate-800 dark:text-slate-200 mb-1 flex items-center gap-1.5" id="test-wh-status-title">
+                        <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                        <span>Status Kirim Webhook</span>
+                    </p>
+                    <pre id="test-wh-result-pre" class="font-mono text-[10px] text-slate-600 dark:text-darkSubtext overflow-x-auto whitespace-pre-wrap"></pre>
+                </div>
+            </div>
+        </div> <!-- END TAB 3: DEVELOPER SANDBOX -->
+
+        <!-- TAB 4: DOMAIN & ARSITEKTUR PORT PRODUKSI (NO LOCALHOST) -->
+        <div id="tab-network" class="main-tab-content hidden space-y-6">
+            <!-- Header Card -->
+            <div class="bg-gradient-to-r from-slate-900 to-sky-950 rounded-3xl p-6 sm:p-8 text-white shadow-lg border border-slate-800">
+                <div class="max-w-2xl">
+                    <span class="px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-[11px] font-extrabold uppercase tracking-wider border border-sky-400/30 inline-flex items-center gap-1.5 mb-3">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Enterprise Dual-Port Isolation Architecture
+                    </span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+                        Arsitektur Produksi & Konfigurasi Domain
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                        YuriPay memisahkan port publik checkout pelanggan dari port privat administrasi internal. Di lingkungan produksi (*production*), Anda <strong>tidak boleh mengekspos localhost atau port mentah ke publik</strong>, melainkan menggunakan Reverse Proxy Nginx berenkripsi SSL HTTPS.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Dual Port Comparison Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Port 3001 Public -->
+                <div class="bg-white dark:bg-darkCard rounded-3xl p-6 border-2 border-emerald-500/30 dark:border-emerald-500/20 shadow-sm relative">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBorder mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-globe text-emerald-500"></i>
+                                <span>PORT 3001: Domain Publik Pelanggan</span>
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Contoh: <code>https://pay.domainanda.com</code></p>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                            PUBLIK
+                        </span>
+                    </div>
+
+                    <ul class="text-xs space-y-2.5 text-slate-600 dark:text-darkSubtext">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>
+                            <span>Hanya melayani rute checkout pembayaran pelanggan: <code>/pay/:id</code>.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>
+                            <span>Poller status pembayaran otomatis: <code>/api/payment-status/:id</code>.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-emerald-500 mt-0.5 shrink-0"></i>
+                            <span><strong>Zero Access ke Token:</strong> Port ini tidak memiliki akses ke sesi admin, log mutasi GoPay, maupun kredensial sensitif.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-shield text-googleBlue dark:text-sky-400 mt-0.5 shrink-0"></i>
+                            <span><strong>Stealth Protection:</strong> Mengakses root port ini akan otomatis mengalihkan bot/scanner ke website toko utama merchant Anda.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Port 3000 Internal Admin -->
+                <div class="bg-white dark:bg-darkCard rounded-3xl p-6 border-2 border-blue-500/30 dark:border-blue-500/20 shadow-sm relative">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBorder mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                                <i class="fa-solid fa-lock text-googleBlue dark:text-sky-400"></i>
+                                <span>PORT 3000: Domain Internal Admin & Kasir</span>
+                            </h3>
+                            <p class="text-[11px] text-slate-400">Contoh: <code>https://admin.domainanda.com</code></p>
+                        </div>
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 dark:bg-blue-950 text-googleBlue dark:text-sky-300">
+                            INTERNAL
+                        </span>
+                    </div>
+
+                    <ul class="text-xs space-y-2.5 text-slate-600 dark:text-darkSubtext">
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-googleBlue dark:text-sky-400 mt-0.5 shrink-0"></i>
+                            <span>Dashboard operasional kasir, verifikasi mutasi, dan monitoring omset.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-check text-googleBlue dark:text-sky-400 mt-0.5 shrink-0"></i>
+                            <span>Dilindungi autentikasi email & kata sandi admin dengan rate limiting anti brute-force.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i class="fa-solid fa-shield-halved text-amber-500 mt-0.5 shrink-0"></i>
+                            <span><strong>Rekomendasi Produksi:</strong> Batasi akses port ini hanya untuk IP kantor/rumah via firewall (UFW/iptables) atau VPN privat.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Nginx Production Configuration Snippet -->
+            <div class="bg-white dark:bg-darkCard rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-darkBorder shadow-sm">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-darkBorder mb-4">
+                    <h3 class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                        <i class="fa-brands fa-linux text-googleBlue dark:text-sky-400"></i>
+                        <span>Template Nginx Reverse Proxy Produksi (Siap Salin)</span>
+                    </h3>
+                    <button onclick="copyNginxConfig()" class="px-3 py-1.5 bg-googleBlue text-white font-bold rounded-xl text-xs flex items-center gap-1.5">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>Salin Konfigurasi</span>
+                    </button>
+                </div>
+
+                <pre id="nginx-config-snippet" class="p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-[11px] overflow-x-auto whitespace-pre">
+# 1. Server Block untuk Domain Checkout Publik Pelanggan (Port 3001)
+server {
+    listen 80;
+    server_name pay.domainanda.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name pay.domainanda.com;
+
+    ssl_certificate /etc/letsencrypt/live/pay.domainanda.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/pay.domainanda.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}
+
+# 2. Server Block untuk Domain Admin Internal & Kasir (Port 3000)
+server {
+    listen 443 ssl http2;
+    server_name admin.domainanda.com;
+
+    ssl_certificate /etc/letsencrypt/live/admin.domainanda.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/admin.domainanda.com/privkey.pem;
+
+    # Opsional: Batasi IP Admin untuk keamanan mutlak
+    # allow 114.124.0.0/16;
+    # deny all;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+    }
+}</pre>
+            </div>
+        </div> <!-- END TAB 4: DOMAIN & NETWORK -->
 
     </main>
 
@@ -1526,6 +2196,202 @@ def midtrans_webhook():
             document.getElementById('code-' + tab).classList.remove('hidden');
             const activeTab = document.getElementById('tab-' + tab);
             activeTab.className = 'font-bold px-3 py-1 rounded-lg bg-googleBlue text-white text-[11px]';
+        }
+
+        // ==============================================
+        // MAIN TABS SWITCHER (STRIPE / ENTERPRISE STYLE)
+        // ==============================================
+        function switchMainTab(tabId) {
+            document.querySelectorAll('.main-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.main-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-googleBlue', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+                btn.classList.add('bg-white', 'dark:bg-darkCard', 'text-slate-700', 'dark:text-slate-300');
+            });
+
+            const targetTab = document.getElementById(tabId);
+            const targetBtn = document.getElementById('btn-' + tabId);
+
+            if (targetTab) targetTab.classList.remove('hidden');
+            if (targetBtn) {
+                targetBtn.classList.remove('bg-white', 'dark:bg-darkCard', 'text-slate-700', 'dark:text-slate-300');
+                targetBtn.classList.add('bg-googleBlue', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+            }
+        }
+
+        // Switch Sandbox Endpoint (Create vs Check)
+        function switchSandboxEndpoint() {
+            const ep = document.getElementById('sandbox-endpoint-select').value;
+            const createFields = document.getElementById('sandbox-create-fields');
+            const checkFields = document.getElementById('sandbox-check-fields');
+
+            if (ep === 'create') {
+                createFields.classList.remove('hidden');
+                checkFields.classList.add('hidden');
+            } else {
+                createFields.classList.add('hidden');
+                checkFields.classList.remove('hidden');
+            }
+        }
+
+        // Toggle Secret Key Masking
+        function toggleSecretKeyVisibility() {
+            const input = document.getElementById('dev-secret-key');
+            const icon = document.getElementById('eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-regular fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-regular fa-eye';
+            }
+        }
+
+        // Copy Key to Clipboard
+        function copyDevKey(elementId, alertMsg = 'Kunci tersalin!') {
+            const input = document.getElementById(elementId);
+            if (!input) return;
+            navigator.clipboard.writeText(input.value);
+            alert(alertMsg);
+        }
+
+        // Confirm & Regenerate API Keys
+        async function confirmRegenerateKeys() {
+            const proceed = confirm('⚠️ PERINGATAN ROTASI KUNCI:\n\nApakah Anda yakin ingin men-generate ulang Public Key & Secret Key?\nKunci lama akan seketika dibatalkan dan sistem yang terhubung harus diperbarui.');
+            if (!proceed) return;
+
+            try {
+                const res = await fetch('/api/keys/regenerate', { method: 'POST' });
+                const result = await res.json();
+                if (result.success && result.data) {
+                    document.getElementById('dev-public-key').value = result.data.publicKey;
+                    document.getElementById('dev-secret-key').value = result.data.secretKey;
+                    document.getElementById('dev-rotated-time').innerText = result.data.rotatedAt;
+                    const apiModalVal = document.getElementById('api-key-val');
+                    if (apiModalVal) apiModalVal.value = result.data.secretKey;
+                    alert('🎉 Kunci API baru berhasil dibuat dan disimpan!');
+                } else {
+                    alert('Gagal: ' + (result.message || 'Error'));
+                }
+            } catch (e) {
+                alert('Gagal generate kunci: ' + e.message);
+            }
+        }
+
+        // Execute Interactive Sandbox Test
+        async function executeSandboxTest() {
+            const ep = document.getElementById('sandbox-endpoint-select').value;
+            const outputEl = document.getElementById('sandbox-output');
+            const latencyBadge = document.getElementById('sandbox-latency-badge');
+            const linkBox = document.getElementById('sandbox-checkout-link-box');
+            const linkEl = document.getElementById('sandbox-checkout-link');
+            const runBtn = document.getElementById('btn-sandbox-run');
+            const icon = document.getElementById('sandbox-run-icon');
+
+            const authRadio = document.querySelector('input[name="sandbox-auth"]:checked')?.value || 'secret';
+            const secretKey = document.getElementById('dev-secret-key').value;
+            const publicKey = document.getElementById('dev-public-key').value;
+            const token = authRadio === 'secret' ? secretKey : publicKey;
+
+            runBtn.disabled = true;
+            icon.className = 'fa-solid fa-spinner animate-spin';
+            outputEl.textContent = '// Mengirim permintaan HTTP ke server...';
+            linkBox.classList.add('hidden');
+
+            const startTime = performance.now();
+
+            try {
+                let res, data;
+                if (ep === 'create') {
+                    const nominal = parseInt(document.getElementById('sandbox-nominal').value, 10);
+                    const order_id = document.getElementById('sandbox-order-id').value.trim() || `TEST-${Date.now().toString().slice(-6)}`;
+                    const custom_name = document.getElementById('sandbox-memo').value.trim();
+                    const success_theme = document.getElementById('sandbox-theme').value;
+                    const webhook_url = document.getElementById('sandbox-webhook').value.trim();
+                    const redirect_url = document.getElementById('sandbox-redirect').value.trim();
+
+                    res = await fetch('/api/create-payment', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': token
+                        },
+                        body: JSON.stringify({
+                            nominal,
+                            order_id,
+                            custom_name,
+                            success_theme,
+                            webhook_url,
+                            redirect_url
+                        })
+                    });
+                    data = await res.json();
+                    const latency = Math.round(performance.now() - startTime);
+                    latencyBadge.innerText = `⚡ ${latency} ms [HTTP ${res.status}]`;
+
+                    outputEl.textContent = JSON.stringify(data, null, 2);
+                    if (data.success && data.data?.payment_url) {
+                        linkEl.href = data.data.payment_url;
+                        linkBox.classList.remove('hidden');
+                    }
+                } else {
+                    const paymentId = document.getElementById('sandbox-check-id').value.trim();
+                    if (!paymentId) {
+                        alert('Silakan masukkan ID Pembayaran / Invoice terlebih dahulu');
+                        return;
+                    }
+                    res = await fetch(`/api/check-payment/${encodeURIComponent(paymentId)}`);
+                    data = await res.json();
+                    const latency = Math.round(performance.now() - startTime);
+                    latencyBadge.innerText = `⚡ ${latency} ms [HTTP ${res.status}]`;
+                    outputEl.textContent = JSON.stringify(data, null, 2);
+                }
+            } catch (e) {
+                latencyBadge.innerText = '⚠️ Error';
+                outputEl.textContent = JSON.stringify({ error: e.message }, null, 2);
+            } finally {
+                runBtn.disabled = false;
+                icon.className = 'fa-solid fa-play';
+            }
+        }
+
+        // Test Webhook Dispatch
+        async function dispatchTestWebhook() {
+            const whUrl = document.getElementById('test-wh-url').value.trim();
+            if (!whUrl) {
+                alert('Silakan masukkan URL Webhook server tujuan');
+                return;
+            }
+            const btn = document.getElementById('btn-test-wh');
+            const icon = document.getElementById('test-wh-icon');
+            const resBox = document.getElementById('test-wh-result-box');
+            const resPre = document.getElementById('test-wh-result-pre');
+
+            btn.disabled = true;
+            icon.className = 'fa-solid fa-spinner animate-spin';
+
+            try {
+                const res = await fetch('/api/test-webhook-dispatch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ webhook_url: whUrl })
+                });
+                const result = await res.json();
+                resBox.classList.remove('hidden');
+                resPre.textContent = JSON.stringify(result, null, 2);
+            } catch (e) {
+                resBox.classList.remove('hidden');
+                resPre.textContent = JSON.stringify({ error: e.message }, null, 2);
+            } finally {
+                btn.disabled = false;
+                icon.className = 'fa-solid fa-paper-plane';
+            }
+        }
+
+        // Copy Nginx Config
+        function copyNginxConfig() {
+            const text = document.getElementById('nginx-config-snippet').innerText;
+            navigator.clipboard.writeText(text);
+            alert('Konfigurasi Nginx berhasil disalin!');
         }
 
         // On Load: Restore active payment if user refreshed the page!
