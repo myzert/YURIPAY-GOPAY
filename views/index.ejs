@@ -90,13 +90,6 @@
                     <span class="hidden sm:inline">API & Webhook</span>
                 </button>
 
-                <!-- Swagger UI Button -->
-                <a href="/docs" target="_blank" 
-                    class="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-xs font-bold transition border border-emerald-200 dark:border-emerald-800/50 flex items-center gap-1.5 shadow-sm">
-                    <i class="fa-solid fa-book-open text-emerald-500"></i>
-                    <span class="hidden sm:inline">Swagger UI</span>
-                </a>
-
                 <!-- Test Soundbox & Pop-up Demo -->
                 <button onclick="testSoundboxVoice()" 
                     class="px-3 py-2 rounded-xl bg-pink-50 hover:bg-pink-100 dark:bg-pink-950/40 dark:hover:bg-pink-950/70 text-pink-700 dark:text-pink-300 text-xs font-bold transition border border-pink-200 dark:border-pink-800/50 flex items-center gap-1.5 shadow-sm">
@@ -617,28 +610,22 @@
                 </div>
             </div>
 
-            <!-- Swagger UI & JSON Link Banner -->
-            <div class="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800/50 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <!-- Swagger UI & JSON Link Banner (Static Isolation Mode) -->
+            <div class="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700/60 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                     <h4 class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5 text-xs">
-                        <i class="fa-solid fa-book-open text-emerald-600 dark:text-emerald-400"></i>
-                        <span>Swagger & OpenAPI 3.0 Documentation</span>
+                        <i class="fa-solid fa-shield-halved text-emerald-600 dark:text-emerald-400"></i>
+                        <span>OpenAPI 3.0 & Swagger UI (Static Isolation)</span>
                     </h4>
                     <p class="text-[11px] text-slate-500 dark:text-darkSubtext mt-0.5">
-                        Dokumentasi interaktif Swagger UI & file <code>swagger.json</code> untuk integrasi cepat
+                        Dokumentasi dipisahkan ke berkas statis <code>docs/index.html</code> dan <code>docs/swagger.json</code> untuk mencegah scanning celah keamanan pada port backend
                     </p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <a href="/docs" target="_blank" 
-                       class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1 transition shadow-sm">
-                        <span>Buka Swagger UI</span>
-                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                    </a>
-                    <a href="/swagger.json" target="_blank" download="swagger.json"
-                       class="px-3 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs flex items-center gap-1 transition border border-slate-200 dark:border-slate-700">
-                        <i class="fa-solid fa-download"></i>
-                        <span>swagger.json</span>
-                    </a>
+                    <span class="px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold rounded-lg text-[11px] flex items-center gap-1">
+                        <i class="fa-solid fa-check"></i>
+                        <span>docs/ Terisolasi</span>
+                    </span>
                 </div>
             </div>
 

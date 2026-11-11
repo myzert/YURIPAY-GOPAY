@@ -6,7 +6,6 @@ const path = require('path');
 const gopayClient = require('./src/gateway/gopayClient');
 const paymentStore = require('./src/gateway/paymentStore');
 const webhookEngine = require('./src/gateway/webhookEngine');
-const { getSwaggerSpec } = require('./src/gateway/swaggerDoc');
 
 const DASHBOARD_PORT = parseInt(process.env.DASHBOARD_PORT || '3000', 10);
 const PAYMENT_PORT = parseInt(process.env.PAYMENT_PORT || '3001', 10);
@@ -394,29 +393,6 @@ dashboardApp.post('/api/webhook-test', (req, res) => {
     console.log(JSON.stringify(req.body, null, 2));
     res.status(200).json({ status: 'OK', message: 'Notification received successfully' });
 });
-
-// Swagger OpenAPI 3.0 Documentation Handlers
-function handleSwaggerJson(req, res) {
-    const proto = req.protocol || 'http';
-    const host = req.get('host') || 'localhost';
-    const serverUrl = `${proto}://${host}`;
-    res.json(getSwaggerSpec(serverUrl));
-}
-
-function handleSwaggerUI(req, res) {
-    res.render('swagger', {
-        appName: APP_NAME,
-        storeName: STORE_NAME
-    });
-}
-
-dashboardApp.get('/swagger.json', handleSwaggerJson);
-dashboardApp.get('/docs', handleSwaggerUI);
-dashboardApp.get('/api-docs', handleSwaggerUI);
-
-paymentApp.get('/swagger.json', handleSwaggerJson);
-paymentApp.get('/docs', handleSwaggerUI);
-paymentApp.get('/api-docs', handleSwaggerUI);
 
 // ====================================================
 // 2. PAYMENT APP ROUTES (PORT 3001) - CUSTOMER FACING

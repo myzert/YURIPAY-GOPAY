@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "login": "node login.js"
+    "login": "node login.js",
+    "docs:build": "node -e \"const { getSwaggerSpec } = require('./src/gateway/swaggerDoc'); const fs = require('fs'); fs.mkdirSync('docs', { recursive: true }); fs.writeFileSync('docs/swagger.json', JSON.stringify(getSwaggerSpec(), null, 2)); console.log('Generated docs/swagger.json');\""
   },
   "keywords": [
     "yuripay",

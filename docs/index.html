@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swagger API Docs - <%= appName %> by <%= storeName %></title>
+    <title>YuriPay API Documentation (OpenAPI 3.0 • Swagger UI)</title>
     <!-- Swagger UI CSS -->
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,10 +14,10 @@
         body {
             margin: 0;
             background: #fafafa;
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         .topbar-brand {
-            background: #1a73e8;
+            background: #0284c7;
             color: white;
             padding: 12px 24px;
             display: flex;
@@ -33,7 +33,12 @@
             align-items: center;
             gap: 10px;
         }
-        .topbar-brand a {
+        .topbar-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .topbar-actions a {
             color: white;
             text-decoration: none;
             font-size: 13px;
@@ -46,8 +51,18 @@
             align-items: center;
             gap: 6px;
         }
-        .topbar-brand a:hover {
+        .topbar-actions a:hover {
             background: rgba(255,255,255,0.3);
+        }
+        .isolation-notice {
+            background: #f0fdf4;
+            border-bottom: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 10px 24px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         #swagger-ui {
             max-width: 1200px;
@@ -61,20 +76,28 @@
 
     <header class="topbar-brand">
         <h1>
-            <i class="fa-solid fa-bolt"></i>
-            <span><%= appName %> • <%= storeName %> API Documentation (Swagger)</span>
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>YURIPAY • OpenAPI 3.0 Specification</span>
         </h1>
-        <div style="display: flex; gap: 8px;">
-            <a href="/swagger.json" target="_blank" download="swagger.json">
+        <div class="topbar-actions">
+            <a href="swagger.json" target="_blank" download="swagger.json">
                 <i class="fa-solid fa-download"></i>
                 <span>Unduh swagger.json</span>
             </a>
-            <a href="/">
-                <i class="fa-solid fa-arrow-left"></i>
-                <span>Kembali ke Dashboard</span>
+            <a href="https://github.com/myzert/YURIPAY-GOPAY" target="_blank">
+                <i class="fa-brands fa-github"></i>
+                <span>GitHub Repository</span>
             </a>
         </div>
     </header>
+
+    <div class="isolation-notice">
+        <div>
+            <i class="fa-solid fa-circle-check"></i>
+            <strong>Static Isolation Mode:</strong> Dokumentasi ini beroperasi secara mandiri (*standalone static files*) terpisah dari root server produksi demi mencegah reconnaissance attack dan meminimalisir celah keamanan server.
+        </div>
+        <span style="font-family: monospace; font-size: 11px;">v1.0.0</span>
+    </div>
 
     <div id="swagger-ui"></div>
 
@@ -84,7 +107,7 @@
     <script>
         window.onload = function() {
             window.ui = SwaggerUIBundle({
-                url: "/swagger.json",
+                url: "./swagger.json",
                 dom_id: '#swagger-ui',
                 deepLinking: true,
                 presets: [

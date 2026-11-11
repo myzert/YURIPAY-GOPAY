@@ -247,7 +247,7 @@ YuriPay memisahkan lalu lintas jaringan menjadi dua zona keamanan terisolasi:
 │ 📊 Dashboard Kasir & Admin │                        │ 💳 Customer Checkout       │
 │ 🔐 Login Email & Password  │                        │ 🌐 Public Create Payment   │
 │ 📜 Log Mutasi GoBiz        │                        │ ⚡ Public Status Poller    │
-│ 📖 Swagger UI Docs         │                        │ 🚫 Zero Access ke Token    │
+│ 🔒 Isolated Admin API      │                        │ 🚫 Zero Access ke Token    │
 │ 🛠️ Webhook Inspector       │                        │ 🚫 Tanpa Middleware Sesi   │
 └────────────────────────────┘                        └────────────────────────────┘
 ```
@@ -256,7 +256,7 @@ YuriPay memisahkan lalu lintas jaringan menjadi dua zona keamanan terisolasi:
 
 | Variabel | Tipe | Wajib | Contoh / Default | Deskripsi |
 | :--- | :--- | :--- | :--- | :--- |
-| `DASHBOARD_PORT` | Integer | Ya | `3000` | Port listen dashboard kasir, admin, dan Swagger UI. |
+| `DASHBOARD_PORT` | Integer | Ya | `3000` | Port listen internal dashboard kasir, admin, dan verifikasi mutasi. |
 | `PAYMENT_PORT` | Integer | Ya | `3001` | Port listen publik untuk checkout pelanggan (`/pay/:id`). |
 | `STORE_NAME` | String | Ya | `YuriDev` | Nama toko merchant yang tertera pada invoice. |
 | `APP_NAME` | String | Ya | `YURIPAY by myzert` | Nama resmi aplikasi payment gateway. |
@@ -381,12 +381,13 @@ app.post('/api/midtrans-webhook', (req, res) => {
 });
 ```
 
-## 📖 Dokumentasi Swagger UI
+## 📖 Dokumentasi OpenAPI 3.0 (Swagger)
 
-YuriPay menyertakan dokumentasi antarmuka interaktif **OpenAPI 3.0**:
-- **Swagger UI**: [http://localhost:3000/docs](http://localhost:3000/docs) (atau Port 3001)
-- **OpenAPI JSON Spec**: [http://localhost:3000/swagger.json](http://localhost:3000/swagger.json)
-- Dilengkapi fitur pengujian langsung (*Try it out*) untuk seluruh endpoint REST API.
+Demi menjaga keamanan dan mencegah risiko celah pemindaian otomatis (*endpoint reconnaissance & vulnerability scanning*) pada port server produksi, dokumentasi Swagger UI **tidak lagi disajikan langsung di root aplikasi/port backend**.
+
+Sebagai gantinya, dokumentasi API telah diisolasi secara mandiri ke dalam berkas statis (*static standalone*):
+- **Antarmuka Interaktif Swagger UI**: Buka berkas [docs/index.html](docs/index.html) langsung di browser Anda atau host secara terpisah (misal via GitHub Pages atau static server).
+- **Spesifikasi Lengkap OpenAPI 3.0**: Berkas [docs/swagger.json](docs/swagger.json) yang dapat diimpor langsung ke Postman, Insomnia, atau Swagger Editor.
 
 ## ❓ Pertanyaan Umum (FAQ)
 
